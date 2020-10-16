@@ -3,9 +3,9 @@
 var map;
 var polygonSeries;
 var polygonTemplate;
-window.addEventListener("load", setup);
+//window.addEventListener("load", setup_amChartmap);
 
-function setup(){
+function setup_amChartmap(){
 
 	// Create map object
 	map = am4core.create("chartdiv", am4maps.MapChart);
@@ -39,33 +39,57 @@ function setup(){
 	hs.properties.fill = am4core.color("#367B25");
 
 }
+window.addEventListener("load", setup_highchartsmap);
+
+var data = [
+["01001",10],
+["01002",100],
+["01003",1000],
+["03159",1000],
+]
 
 
+var geo_json;
+var rki_data;
+function setup_highchartsmap(){
+
+	//Raw geojson
+	var request = new XMLHttpRequest();
+	request.open("GET", "/assets/data/minified_landkreise.geo.json", false);
+	request.send(null)
+	geo_json = JSON.parse(request.responseText);
+
+	//Rki data
+	var request = new XMLHttpRequest();
+	request.open("GET","https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.geojson", false)
+	request.send(null)
+	rki_data = JSON.parse(request.responseText);
+
+	map = new Highcharts.Map('chartdiv', {  
+   	//First add geojson data
+   	chart:{
+   		map:geo_json
+   	},
+
+   	//Options for the map visuals
+   	plotOptions:{
+   		map:{
+   			borderColor:"white",
+   			borderWidth:0.7,
+   		}
+   	},
 
 
-// INPUTS
+   	//Data for 
+   	series: [{
+   		data:data,
+   		keys: ["id","value"],
+   		joinBy: "id"
+   	}],
 
-var inputs;
-function setup_inputs(){
-	inputs = document.querySelectorAll('input[type=radio]');
-	for (input of inputs){
-		input.addEventListener('change', function(e) {
-			for (input of inputs) {
-				if (input.checked){
-					polygonSeries = map.series.push(new am4maps.MapPolygonSeries());
-					polygonTemplate = polygonSeries.mapPolygons.template;
-					polygonSeries.useGeodata = true;
-					if (input.id == "All") {
-						polygonTemplate.propertyFields.fill = "fill";
-					}
-					else{
-						polygonTemplate.propertyFields.fill = "fill_"+input.id;
-					}
-				}
-			}
-		})
-	}
+	});
 }
+
 
 
 // ---------------------------------------------------------------------------- //
@@ -90,10 +114,3 @@ function throttle(fn, interval) {
     }
   };
 }
-
-
-// return JSON data from any file path (asynchronous)
-function getJSON(path) {
-    return fetch(path).then(response => response.json());
-}
-

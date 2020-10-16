@@ -3,7 +3,7 @@
 # @Author:        Sebastian B. Mohr
 # @Email:
 # @Created:       2020-10-16 17:23:55
-# @Last Modified: 2020-10-16 18:17:57
+# @Last Modified: 2020-10-16 21:01:45
 # ------------------------------------------------------------------------------ #
 import ujson
 from decimal import *
@@ -12,10 +12,10 @@ n = 6
 
 
 # Raw geo_file
-with open("../data/landkreise_sim200.geo.json") as json_file:
+with open("../data/landkreise_simplify200.geojson") as json_file:
     data = ujson.load(json_file)
 
-
+lk_pop = {}
 for i, entry in enumerate(data["features"]):
     # Map AGS as ID for amchart
     props = entry["properties"]
@@ -61,7 +61,12 @@ for i, entry in enumerate(data["features"]):
     for key in ls_del:
         del props[key]
 
+    lk_pop[int(props["id"])] = props["destatis"]["population"]
 
 # Write file
 with open("../data/minified_landkreise.geo.json", "w") as outfile:
     ujson.dump(data, outfile)
+
+# Write file
+with open("../data/population_landkreise.json", "w") as outfile:
+    ujson.dump(lk_pop, outfile)
