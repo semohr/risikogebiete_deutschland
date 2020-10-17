@@ -5,6 +5,11 @@ var polygonSeries;
 var polygonTemplate;
 //window.addEventListener("load", setup_amChartmap);
 
+var scripts = document.getElementsByTagName('script');
+var path = scripts[scripts.length-1].src.split('?')[0];      // remove any ?query
+var mydir = path.split('/').slice(0, -1).join('/')+'/';  // remove last filename part of path
+
+
 function setup_amChartmap(){
 
 	// Create map object
@@ -19,7 +24,7 @@ function setup_amChartmap(){
 	map.maxZoomLevel = 1;
 	map.zoomDuration = 0;
 
-	map.geodataSource.url = "/assets/data/minified_landkreise.geo.json";
+	map.geodataSource.url =  mydir+"../data/minified_landkreise.geo.json";
 
 	map.projection = new am4maps.projections.Miller();
 
@@ -50,7 +55,7 @@ function setup_highchartsmap(){
 
 	//Raw geojson
 	var request = new XMLHttpRequest();
-	request.open("GET", "/assets/data/minified_landkreise.geo.json", false);
+	request.open("GET", mydir+"../data/minified_landkreise.geo.json", false);
 	request.send(null)
 	geo_json = JSON.parse(request.responseText);
   project(
