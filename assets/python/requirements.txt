@@ -1,1 +1,2 @@
 git+https://github.com/Priesemann-Group/covid19_inference.git
+ujson
