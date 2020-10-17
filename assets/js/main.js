@@ -39,18 +39,13 @@ function setup_amChartmap(){
 	hs.properties.fill = am4core.color("#367B25");
 
 }
+
+
 window.addEventListener("load", setup_highchartsmap);
 
-var data = [
-["01001",10],
-["01002",100],
-["01003",1000],
-["03159",1000],
-]
-
-
 var geo_json;
-var rki_data;
+var data_json;
+var age_groups = ["A00-A04","A05-A14","A15-A34","A35-A59","A60-A79","A80+"]
 function setup_highchartsmap(){
 
 	//Raw geojson
@@ -58,36 +53,222 @@ function setup_highchartsmap(){
 	request.open("GET", "/assets/data/minified_landkreise.geo.json", false);
 	request.send(null)
 	geo_json = JSON.parse(request.responseText);
+  project(
+      geo_json,
+      '+proj=merc +lat_1=33 +lat_2=45 +lat_0=0 +lon_0=0'
+  );
 
-	//Rki data
+	//DATA prep
 	var request = new XMLHttpRequest();
-	request.open("GET","https://opendata.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0.geojson", false)
+	request.open("GET", "/assets/data/data_latest.json", false);
 	request.send(null)
-	rki_data = JSON.parse(request.responseText);
+	data_json = JSON.parse(request.responseText);
+
+	data = []
+	for (id_d in data_json) {
+		if (String(id_d).length == 4){
+			var id_m = "0"+String(id_d)
+		}
+		else {
+			var id_m = String(id_d)
+		}
+
+
+		var dat = []
+		dat.push(id_m)
+
+		var vars = [
+		"weekly_cases",	"inzidenz",
+		"weekly_cases_A00-A04",	"inzidenz_A00-A04",
+		"weekly_cases_A05-A14",	"inzidenz_A05-A14",
+		"weekly_cases_A15-A34",	"inzidenz_A15-A34",
+		"weekly_cases_A35-A59",	"inzidenz_A35-A59",
+		"weekly_cases_A60-A79",	"inzidenz_A60-A79",
+		"weekly_cases_A80+",	"inzidenz_A80+",
+		"weekly_cases_unbekannt",	"inzidenz_unbekannt"]
+
+		for (index in vars){
+			dat.push(data_json[id_d][vars[index]])
+		}
+		data.push(dat)
+	}
+
+
+	//Create series dict
+	var input_series = [{
+   		//Config
+   		name: "All age groups",
+      colorKey: "inzidenz",
+
+   		//Data
+   		data: data,
+   		keys: ["id",
+   			"weekly_cases",	"inzidenz",
+				"weekly_cases_A00-A04",	"inzidenz_A00-A04",
+				"weekly_cases_A05-A14",	"inzidenz_A05-A14",
+				"weekly_cases_A15-A34",	"inzidenz_A15-A34",
+				"weekly_cases_A35-A59",	"inzidenz_A35-A59",
+				"weekly_cases_A60-A79",	"inzidenz_A60-A79",
+				"weekly_cases_A80+",	"inzidenz_A80+",
+				"weekly_cases_unbekannt",	"inzidenz_unbekannt"],
+   		joinBy: null,
+   		animation: false,
+   	},]
+
+	
+	for (a of age_groups) {
+		input_series.push({
+   		//Config
+   		name: a,
+      colorKey: "inzidenz_"+a,
+   		//Data
+   		data: data,
+   		keys: ["id",
+   			"weekly_cases",	"inzidenz",
+				"weekly_cases_A00-A04",	"inzidenz_A00-A04",
+				"weekly_cases_A05-A14",	"inzidenz_A05-A14",
+				"weekly_cases_A15-A34",	"inzidenz_A15-A34",
+				"weekly_cases_A35-A59",	"inzidenz_A35-A59",
+				"weekly_cases_A60-A79",	"inzidenz_A60-A79",
+				"weekly_cases_A80+",	"inzidenz_A80+",
+				"weekly_cases_unbekannt",	"inzidenz_unbekannt"],
+   		joinBy: null,
+   		visible: false,
+   		animation: false,
+   	}
+		)
+	}
+
+
 
 	map = new Highcharts.Map('chartdiv', {  
    	//First add geojson data
    	chart:{
-   		map:geo_json
+   		map:geo_json,
+   		allAreas: true,
    	},
 
    	//Options for the map visuals
    	plotOptions:{
-   		map:{
-   			borderColor:"white",
-   			borderWidth:0.7,
-   		}
+   	  states: {
+        hover: {
+          brightness: 0.2,
+          borderColor: 'gray'
+        }
+      },
    	},
 
-
    	//Data for 
-   	series: [{
-   		data:data,
-   		keys: ["id","value"],
-   		joinBy: "id"
-   	}],
+   	series: input_series,
+
+   	//Formating
+    title: {
+      text: undefined,
+    },
+
+    tooltip: {
+    	useHTML: true,
+    	formatter: function(tooltip){
+    		name = this.point.properties.GEN;
+    		wc = this.point["weekly_cases"];
+    		i = this.point["inzidenz"];
+    		
+    		wc_a = {}
+    		i_a = {}
+    		for (a of age_groups) {
+    			wc_a[a] = this.point["weekly_cases_"+a];
+    			i_a[a] = this.point["inzidenz_"+a];
+    		}
+    		//Construct string
+    		str = `<h5> ${name}</h5>
+    					<hr>
+    					<table>
+    					<tr><th style="text-align: left; padding-right:10px;">Altersgruppe</th><th style="text-align: right;padding-left: 10px">Fälle der letzte Woche</th>`
+
+    		str +=`<tr>
+    						<td>Alle</td>
+    						<td style="text-align: right;">${wc}</td>
+    					</tr>`
+    		for (a of age_groups) {
+	    		str +=`<tr>
+	    						<td>${a}</td>
+	    						<td style="text-align: right;">${wc_a[a]}</td>
+	    					</tr>`    			
+    		}
+
+
+    		str += "</table"
+    		return str
+    	},
+      pointFormat: '{point.properties.GEN}: {point.properties.id}'
+    },
+
+    colors:["#15b01a","#fac205","#e50000"],
+    colorAxis: {
+        dataClassColor: 'category',
+        dataClasses: [{
+            to: 25
+        }, {
+            from: 25,
+            to: 50
+        }, {
+            from: 50,
+        }],
+        events:{
+        	legendItemClick: function(e){e.preventDefault();console.log(e)},
+        }
+    },
+
+	legend: {
+		title: {
+		  text: 'Fälle/100.000 EW<br/> <span style="font-size: 9px; color: #666; font-weight: normal">in der jeweiligen Altersgruppe</span>'
+		},
+		align: 'left',
+		verticalAlign: 'bottom',
+		floating: true,
+    labelFormatter: function () {
+      return (this.from || '<') + ' - ' + (this.to || '>');
+    },
+		layout: 'vertical',
+		valueDecimals: 0,
+		backgroundColor: 'rgba(0,0,0,0.1)',
+		symbolRadius: 0,
+		symbolHeight: 14,
+		borderRadius: 5,
+	},
 
 	});
+}
+
+
+
+var inputs;
+window.addEventListener("load", setup_inputs);
+
+function setup_inputs(){
+	inputs = document.querySelectorAll("input[type='radio']")
+	for (input of inputs){
+		input.onclick = function(e){
+			for (series of map.series){
+				if (series.name == e.target.id) {
+					series.show()
+				}
+				else{
+					series.hide()
+				}
+			}
+		}
+	}
+}
+
+
+function get_series_by_age_group(ag){
+	for (series of map.series){
+		if (series.name == ag){
+			return series
+		}
+	}
+	return "NOT FOUND" 
 }
 
 
@@ -113,4 +294,22 @@ function throttle(fn, interval) {
       fn.call();
     }
   };
+}
+
+// Project the data using Proj4
+function project(geojson, projection) {
+    const projectPolygon = coordinate => {
+        coordinate.forEach((lonLat, i) => {
+            coordinate[i] = window.proj4(projection, lonLat);
+        });
+    };
+    geojson.features.forEach(function (feature) {
+        if (feature.geometry.type === 'Polygon') {
+            feature.geometry.coordinates.forEach(projectPolygon);
+        } else if (feature.geometry.type === 'MultiPolygon') {
+            feature.geometry.coordinates.forEach(items => {
+                items.forEach(projectPolygon);
+            });
+        }
+    });
 }

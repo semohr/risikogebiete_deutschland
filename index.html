@@ -21,13 +21,14 @@
 	</div>
 
   <div id="inputs">
-  <label class="radio-inline"><input id="All" type="radio" name="optradio" checked>All</label>
-  <label class="radio-inline"><input id="A00-A04" type="radio" name="optradio">A00-A04</label>
-  <label class="radio-inline"><input id="A05-A14"type="radio" name="optradio">A05-A14</label>
-  <label class="radio-inline"><input id="A15-A34"type="radio" name="optradio">A15-A34</label> 
-  <label class="radio-inline"><input id="A35-A59"type="radio" name="optradio">A35-A59</label> 
-  <label class="radio-inline"><input id="A60-A79"type="radio" name="optradio">A60-A79</label> 
-  <label class="radio-inline"><input id="A80+" type="radio" name="optradio">A80+</label>
+    <h5>Altersgruppen</h5>
+    <label class="radio-inline"><input id="All age groups" type="radio" name="optradio" checked>All</label>
+    <label class="radio-inline"><input id="A00-A04" type="radio" name="optradio">A00-A04</label>
+    <label class="radio-inline"><input id="A05-A14"type="radio" name="optradio">A05-A14</label>
+    <label class="radio-inline"><input id="A15-A34"type="radio" name="optradio">A15-A34</label> 
+    <label class="radio-inline"><input id="A35-A59"type="radio" name="optradio">A35-A59</label> 
+    <label class="radio-inline"><input id="A60-A79"type="radio" name="optradio">A60-A79</label> 
+    <label class="radio-inline"><input id="A80+" type="radio" name="optradio">A80+</label>
   </div>
 
 
@@ -40,9 +41,14 @@
   <script src="https://cdn.amcharts.com/lib/4/maps.js"></script>
 
   <!-- Highchart -->
-  <script src="https://code.highcharts.com/maps/highmaps.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/maps/modules/map.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <script src="https://code.highcharts.com/mapdata/custom/world.js"></script>
 
-  
+  <!-- Projection -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.5.0/proj4.js"></script>
+
 	<!-- Own JS -->
 	<script type="text/javascript" src="assets/js/main.js"></script>
 </body>

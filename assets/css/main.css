@@ -2,8 +2,43 @@
 * @Author: Sebastian B. Mohr
 * @Date:   2020-10-15 13:30:35
 * @Last Modified by:   Sebastian
-* @Last Modified time: 2020-10-15 21:53:15
+* @Last Modified time: 2020-10-17 01:43:33
 */
+
+body {
+	font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+}
+
+
+h5{
+	font-weight: bold;
+	font-size: 12px;
+	margin-left: 3px;
+	margin-right: 3px;
+	margin-bottom: 3px;
+	margin-top: 3px;
+	padding:0;
+}
 #chartdiv {
 	height: 100vh;
+}
+#inputs{
+	position: fixed;
+	display: grid;
+	top: 10px;
+	left: 10px;
+	padding: 5px;
+	background-color: rgba(0,0,0,0.1);
+	border-radius: 5px;
+}
+
+table {
+ border-collapse: collapse;
+}
+td:first-child, th:first-child {
+ border-left: none;
+}
+tr:last-child {
+ border-bottom: none;
 }
