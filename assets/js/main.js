@@ -65,7 +65,7 @@ function setup_highchartsmap(){
 
 	//DATA prep
 	var request = new XMLHttpRequest();
-	request.open("GET", "/assets/data/data_latest.json", false);
+	request.open("GET", mydir+"../data/data_latest.json", false);
 	request.send(null)
 	data_json = JSON.parse(request.responseText);
 
