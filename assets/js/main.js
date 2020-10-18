@@ -188,16 +188,23 @@ function setup_highchartsmap(){
     		str = `<h5> ${name}</h5>
     					<hr>
     					<table>
-    					<tr><th style="text-align: left; padding-right:10px;">Altersgruppe</th><th style="text-align: right;padding-left: 10px">Fälle der letzte Woche</th>`
+    					<tr>
+    					<th style="text-align: left; padding-right:10px;">Altersgruppe</th>
+    					<th style="text-align: right;padding-left: 10px">Fälle der letzte Woche</th>
+    					<th style="text-align: right;padding-left: 10px">pro 100.000 EW</th>
+    					`
 
     		str +=`<tr>
     						<td>Alle</td>
     						<td style="text-align: right;">${wc}</td>
+    						<td style="text-align: right;">${i.toFixed(2)}</td>
     					</tr>`
     		for (a of age_groups) {
+    			console.log(i_a[a],name,this.point.properties.id)
 	    		str +=`<tr>
 	    						<td>${a}</td>
 	    						<td style="text-align: right;">${wc_a[a]}</td>
+	    						<td style="text-align: right;">${i_a[a].toFixed(2)}</td>
 	    					</tr>`    			
     		}
 

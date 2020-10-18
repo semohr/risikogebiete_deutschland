@@ -3,7 +3,7 @@
 # @Author:        Sebastian B. Mohr
 # @Email:
 # @Created:       2020-10-15 14:08:49
-# @Last Modified: 2020-10-16 21:26:16
+# @Last Modified: 2020-10-18 12:41:50
 # ------------------------------------------------------------------------------ #
 import ujson
 import pandas as pd
@@ -159,10 +159,12 @@ for lk_id in data_cases.index.get_level_values(level="IdLandkreis").unique():
             data[lk_id][f"inzidenz_{ag}"] = (
                 data_lk[ag]
                 * 100000
-                / (pop_rki_aligned.sum()[ag] / pop_rki_aligned.sum().sum())
-                * population_landkreise[str(lk_id)]
+                / (
+                    pop_rki_aligned.sum()[ag]
+                    / pop_rki_aligned.sum().sum()
+                    * population_landkreise[str(lk_id)]
+                )
             )
-
 
 # Write file
 with open("../data/data_latest.json", "w") as outfile:
