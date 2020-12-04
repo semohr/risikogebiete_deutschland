@@ -104,6 +104,9 @@ data = {}
 for lk_id in data_cases.index.get_level_values(level="IdLandkreis").unique():
     data_lk = data_cases.xs(lk_id, level="IdLandkreis")
 
+    if lk_id == 5354:
+        continue
+
     # BERLIN
     berlin = [
         11002,
