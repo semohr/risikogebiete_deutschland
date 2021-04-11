@@ -83,14 +83,14 @@ function setup_highchartsmap(){
 		dat.push(id_m)
 
 		var vars = [
-		"weekly_cases",	"inzidenz",
-		"weekly_cases_A00-A04",	"inzidenz_A00-A04",
-		"weekly_cases_A05-A14",	"inzidenz_A05-A14",
-		"weekly_cases_A15-A34",	"inzidenz_A15-A34",
-		"weekly_cases_A35-A59",	"inzidenz_A35-A59",
-		"weekly_cases_A60-A79",	"inzidenz_A60-A79",
-		"weekly_cases_A80+",	"inzidenz_A80+",
-		"weekly_cases_unbekannt",	"inzidenz_unbekannt"]
+		"weekly_cases",	           "inzidenz",
+		"weekly_cases_A00-A04",	   "inzidenz_A00-A04",
+		"weekly_cases_A05-A14",	   "inzidenz_A05-A14",
+		"weekly_cases_A15-A34",	   "inzidenz_A15-A34",
+		"weekly_cases_A35-A59",	   "inzidenz_A35-A59",
+		"weekly_cases_A60-A79",	   "inzidenz_A60-A79",
+		"weekly_cases_A80+",	     "inzidenz_A80+",
+		"weekly_cases_unbekannt",	 "inzidenz_unbekannt"]
 
 		for (index in vars){
 			dat.push(data_json[id_d][vars[index]])
@@ -170,7 +170,10 @@ function setup_highchartsmap(){
     title: {
       text: undefined,
     },
-
+    exporting: {
+      filename: 'Map',
+      allowHTML: true,
+    },
     tooltip: {
     	useHTML: true,
     	formatter: function(tooltip){
@@ -324,4 +327,14 @@ function project(geojson, projection) {
             });
         }
     });
+}
+
+
+const date = async () => {
+  const response1 = await fetch('https://api.github.com/repos/semohr/risikogebiete_deutschland/git/refs/heads/master');
+  const refmain = await response1.json()
+  const response2 = await fetch('https://api.github.com/repos/semohr/risikogebiete_deutschland/git/commits/'+refmain.object.sha);
+  const lastcommit = await response2.json()
+  const lastcommitdate = lastcommit.committer.date
+  document.getElementById("lastcommitdate").innerHTML = lastcommitdate
 }
