@@ -274,6 +274,7 @@ function setup_inputs(){
 			}
 		}
 	}
+  date()
 }
 
 
@@ -338,3 +339,4 @@ const date = async () => {
   const lastcommitdate = lastcommit.committer.date
   document.getElementById("lastcommitdate").innerHTML = lastcommitdate
 }
+
