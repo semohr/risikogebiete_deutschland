@@ -35,6 +35,6 @@ jobs:
            author_name: UpdateBot
            author_email: sebastian@mohrenclan.de
            message: "Updated rki dataset"
-           add: '["*.json","*.csv"]'
+           add: 'assets/data/*'
         env:
            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
