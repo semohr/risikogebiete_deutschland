@@ -3,7 +3,7 @@
 # @Author:        Sebastian B. Mohr
 # @Email:
 # @Created:       2020-10-15 14:08:49
-# @Last Modified: 2020-10-18 12:41:50
+# @Last Modified: 2021-04-15 15:37:34
 # ------------------------------------------------------------------------------ #
 import ujson
 import pandas as pd
@@ -172,3 +172,9 @@ for lk_id in data_cases.index.get_level_values(level="IdLandkreis").unique():
 # Write file
 with open("../data/data_latest.json", "w") as outfile:
     ujson.dump(data, outfile)
+
+# Additionally write csv
+df = pd.read_json(open("../data/data_latest.json", "r"))
+df = df.T
+df.index.name = "Landreis ID"
+df.to_csv("../data/data_latest.csv")
