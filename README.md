@@ -6,3 +6,7 @@ The data on new infections is from the [Robert Koch Institute](https://npgeo-cor
 You can also download the processed data in json or csv format from the `assets/data` folder.
 
 - **Live Website: https://semohr.github.io/risikogebiete_deutschland/**
+
+<div>
+   <img src="/assets/img/example.png" alt="Example picture" width="500"> 
+</div>
