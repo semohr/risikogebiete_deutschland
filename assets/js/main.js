@@ -177,6 +177,10 @@ function setup_highchartsmap(){
    	},
     mapNavigation: {
         enabled: true,
+        buttonOptions: {
+          align: 'right',
+          verticalAlign: 'up',
+        }
     },
    	//Options for the map visuals
    	plotOptions:{
