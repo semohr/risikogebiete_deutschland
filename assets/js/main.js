@@ -46,6 +46,29 @@ function setup_amChartmap(){
 }
 
 
+/**
+ * Find a short tooltip label for local authority classes in germany.
+ * Keep a reasonable default for unknown new classes.
+ */
+function localAuthorityToolTip(pointProperties) {
+    var bez = pointProperties.BEZ;
+    var prefix = bez + ' ';
+    if (bez == 'Landkreis') {
+        prefix = 'LK ';
+    }
+    if (bez == 'Kreis') {
+        prefix = 'Kr ';
+    }
+    if (bez == 'Stadtkreis') {
+        prefix = 'SK ';
+    }
+    if (bez == 'Kreisfreie Stadt') {
+        prefix = 'Stadt ';
+    }
+    return prefix + pointProperties.GEN;
+}
+
+
 window.addEventListener("load", setup_highchartsmap);
 
 var geo_json;
@@ -180,7 +203,7 @@ function setup_highchartsmap(){
     tooltip: {
     	useHTML: true,
     	formatter: function(tooltip){
-    		name = this.point.properties.GEN;
+    		name = localAuthorityToolTip(this.point.properties);
     		wc = this.point["weekly_cases"];
     		i = this.point["inzidenz"];
     		
