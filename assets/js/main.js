@@ -151,8 +151,11 @@ function setup_highchartsmap(){
    	chart:{
    		map:geo_json,
    		allAreas: true,
+   		zoomType: "xy",
    	},
-
+    mapNavigation: {
+        enableMouseWheelZoom: true
+    },
    	//Options for the map visuals
    	plotOptions:{
    	  states: {
