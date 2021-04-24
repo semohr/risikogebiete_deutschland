@@ -174,6 +174,11 @@ function setup_highchartsmap(){
    	chart:{
    		map:geo_json,
    		allAreas: true,
+   	    resetZoomButton: {
+        	theme: {
+           		display: 'none'
+        	}
+    	}
    	},
     mapNavigation: {
         enabled: true,
