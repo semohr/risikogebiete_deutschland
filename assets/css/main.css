@@ -1,8 +1,8 @@
 /*
 * @Author: Sebastian B. Mohr
 * @Date:   2020-10-15 13:30:35
-* @Last Modified by:   Sebastian
-* @Last Modified time: 2020-10-17 01:43:33
+* @Last Modified by:   sebastian
+* @Last Modified time: 2021-05-04 12:45:40
 */
 
 body {
@@ -41,4 +41,80 @@ td:first-child, th:first-child {
 }
 tr:last-child {
  border-bottom: none;
+}
+
+/*--------------------------------------------------------------
+# Accordion
+--------------------------------------------------------------*/
+
+ /* Style the buttons that are used to open and close the accordion panel */
+.accordion {
+  color: #6f7180;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border: none;
+  outline: none;
+  transition: 0.4s;
+  display: flex;
+  justify-content: space-between;
+}
+
+.accordion.active{
+  color: #7762b5;
+}
+.accordion>i::before{
+  content: "\f067";
+  position: relative;
+}
+.accordion>i:before {
+position: relative;
+top: 50%;
+    transform: translateY(-50%);
+    display: block;
+}
+
+.accordion.active>i::before{
+  content: "\f068";
+}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+  display: block;
+  overflow: hidden;
+}
+
+
+ul {
+	padding: 0px;
+	margin: 0px;
+}
+
+ul > li
+{
+    list-style-type: none;
+}
+
+#loader {
+    border: 12px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 12px solid #444444;
+    width: 70px;
+    height: 70px;
+    animation: spin 1s linear infinite;
+}
+  
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+  
+.center {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
 }
