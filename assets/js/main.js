@@ -252,7 +252,7 @@ function setup_highchartsmap(){
       pointFormat: '{point.properties.GEN}: {point.properties.id}'
     },
 
-    colors:["#15b01a","#fac205","#f97c0e","#c50000","#8c53d1","#303030"],
+    colors:["#15b01a","#fac205","#f97c0e","#c50000","#ac43b1","#4c23c1","#303030"],
     colorAxis: {
         dataClassColor: 'category',
         dataClasses: [{
@@ -265,6 +265,9 @@ function setup_highchartsmap(){
             to: 100
         }, {
             from: 100,
+            to: 165
+        }, {
+            from: 165,
             to: 200
         }, {
             from: 200,
