@@ -100,7 +100,12 @@
   # taken from https://www.geeksforgeeks.org/how-to-show-page-loading-div-until-the-page-has-finished-loading/
   --------------------------------------------------------------*/
 
-  window.onload = function() {document.getElementById("loader").style.display = "none" };
+  window.onload = function() {
+    // Disable spinner
+    document.getElementById("loader").style.display = "none"
+    // Reselect all age group
+    document.getElementById("All age groups").checked = true
+  };
   </script>
 </body>
 </html>
