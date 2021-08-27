@@ -234,14 +234,14 @@ function setup_highchartsmap(){
     		str +=`<tr>
     						<td>Alle</td>
     						<td style="text-align: right;">${wc}</td>
-    						<td style="text-align: right;">${i.toFixed(2)}</td>
+    						<td style="text-align: right;">${i.toFixed(2).replace(".", ",")}</td>
     					</tr>`
     		for (a of age_groups) {
     			console.log(i_a[a],name,this.point.properties.id)
 	    		str +=`<tr>
 	    						<td>${a}</td>
 	    						<td style="text-align: right;">${wc_a[a]}</td>
-	    						<td style="text-align: right;">${i_a[a].toFixed(2)}</td>
+	    						<td style="text-align: right;">${i_a[a].toFixed(2).replace(".", ",")}</td>
 	    					</tr>`    			
     		}
 
