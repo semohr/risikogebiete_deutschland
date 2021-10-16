@@ -78,7 +78,7 @@ function setup_highchartsmap(){
 
 	//Raw geojson
 	var request = new XMLHttpRequest();
-	request.open("GET", mydir+"../data/minified_landkreise.geo.json", false);
+	request.open("GET", mydir+"../data/minified_landkreise.geo.json?nocache=123", false);
 	request.send(null)
 	geo_json = JSON.parse(request.responseText);
   project(
@@ -88,7 +88,7 @@ function setup_highchartsmap(){
 
 	//DATA prep
 	var request = new XMLHttpRequest();
-	request.open("GET", mydir+"../data/data_latest.json", false);
+	request.open("GET", mydir+"../data/data_latest.json?nocache=123", false);
 	request.send(null)
 	data_json = JSON.parse(request.responseText);
 
