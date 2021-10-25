@@ -252,7 +252,7 @@ function setup_highchartsmap(){
       pointFormat: '{point.properties.GEN}: {point.properties.id}'
     },
 
-    colors:["#15b01a","#fac205","#f97c0e","#c50000","#8c53d1","#303030"],
+    colors:["#15b01a","#fac205","#f97c0e","#c50000","#8c53d1","#00009c","#303030"],
     colorAxis: {
         dataClassColor: 'category',
         dataClasses: [{
@@ -271,7 +271,11 @@ function setup_highchartsmap(){
             to: 500
         }, {
             from: 500,
-        }],
+            to: 1000
+        }, {
+        	from: 1000
+        }
+        ],
         events:{
         	legendItemClick: function(e){e.preventDefault();console.log(e)},
         }
