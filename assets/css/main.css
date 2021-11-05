@@ -1,8 +1,8 @@
 /*
 * @Author: Sebastian B. Mohr
 * @Date:   2020-10-15 13:30:35
-* @Last Modified by:   sebastian
-* @Last Modified time: 2021-05-04 12:45:40
+* @Last Modified by:   Sebastian Mohr
+* @Last Modified time: 2021-11-05 20:55:27
 */
 
 body {
@@ -118,3 +118,39 @@ ul > li
     right: 0;
     margin: auto;
 }
+
+#legend_subtitle{
+    font-size: 9px; color: #666; font-weight: normal;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1c1c1c;
+        color: gray;
+    }
+
+    .highcharts-background{
+        background-color: #1c1c1c;
+        fill: #1c1c1c;
+    }
+
+    .highcharts-plot-background {
+        fill: #1c1c1c;
+    }
+    .highcharts-plot-border {
+        stroke: #1c1c1c;
+    }
+    .highcharts-legend-item {
+        color: gray !important;
+        fill:  gray !important;
+    }
+    .legend_title{
+        fill: white;
+    }
+    .legend_subtitle{
+        fill: gray;
+        color:  gray;
+    }
+
+}
+

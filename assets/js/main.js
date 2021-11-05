@@ -171,6 +171,7 @@ function setup_highchartsmap(){
 	map = new Highcharts.Map('chartdiv', {  
    	//First add geojson data
    	chart:{
+   		styleMode: true,
    		map:geo_json,
    		allAreas: true,
    	    resetZoomButton: {
@@ -282,26 +283,37 @@ function setup_highchartsmap(){
 
 	legend: {
 		title: {
-		  text: 'Fälle/100.000 EW<br/> <span style="font-size: 9px; color: #666; font-weight: normal">in der jeweiligen Altersgruppe</span>'
+		  text: '<label class="legend_title">Fälle/100.000 EW</label><br/> <span class="legend_subtitle">in der jeweiligen Altersgruppe</span>'
 		},
 		align: 'left',
 		verticalAlign: 'bottom',
 		floating: true,
-    labelFormatter: function () {
-      return (this.from || '<') + ' - ' + (this.to || '>');
-    },
+		labelFormatter: function () {
+			return (this.from || '<') + ' - ' + (this.to || '>');
+		},
 		layout: 'vertical',
 		valueDecimals: 0,
 		backgroundColor: 'rgba(0,0,0,0.1)',
 		symbolRadius: 0,
 		symbolHeight: 14,
 		borderRadius: 5,
+		itemStyle:{
+			color: colorFont()
+		}
 	},
 
 	});
 }
 
 
+function colorFont(){
+	if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+		return "gray"
+	}
+	else{
+		return "#333333"
+	}
+}
 
 var inputs;
 window.addEventListener("load", setup_inputs);
