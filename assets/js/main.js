@@ -121,7 +121,6 @@ function setup_highchartsmap(){
 		data.push(dat)
 	}
 
-
 	//Create series dict
 	var input_series = [{
    		//Config
@@ -160,7 +159,7 @@ function setup_highchartsmap(){
 				"weekly_cases_A60-A79",	"inzidenz_A60-A79",
 				"weekly_cases_A80+",	"inzidenz_A80+",
 				"weekly_cases_unbekannt",	"inzidenz_unbekannt"],
-   		joinBy: null,
+   		joinBy: ["AGS","id"],
    		visible: false,
    		animation: false,
    	}
