@@ -159,7 +159,7 @@ function setup_highchartsmap(){
 				"weekly_cases_A60-A79",	"inzidenz_A60-A79",
 				"weekly_cases_A80+",	"inzidenz_A80+",
 				"weekly_cases_unbekannt",	"inzidenz_unbekannt"],
-   		joinBy: ["AGS","id"],
+   		joinBy: null,
    		visible: false,
    		animation: false,
    	}
