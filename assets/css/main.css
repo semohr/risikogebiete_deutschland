@@ -20,6 +20,11 @@ h5{
 	margin-top: 3px;
 	padding:0;
 }
+
+input {
+    margin-right: 2px;
+}
+
 #chartdiv {
 	height: 100vh;
 }

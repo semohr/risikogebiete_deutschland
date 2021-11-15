@@ -39,6 +39,9 @@
       <li class="radio-inline"><input id="A60-A79" type="radio" name="optradio"><label for="A60-A79">A60-A79</label></li>
       <li class="radio-inline"><input id="A80+" type="radio" name="optradio"><label for="A80+">A80+</label></li>
       </ul>
+      <hr style="margin-top: 0.25em; margin-bottom: 0.25em;">
+      <input type="checkbox" id="change_color" style="border-radius: 0px;"><label for="change_color">Alte Farben</label>
+      <hr style="margin-top: 0.25em; margin-bottom: 0.25em;">
       <div style="width: -webkit-min-content;width:;">Aktualisiert am <label id="lastcommitdate">2021-04-24T16:02:13Z</label><br> Daten und Sourcecode sind <a href="https://github.com/semohr/risikogebiete_deutschland">hier</a> verfügbar.
       </div>
     </div>
@@ -66,17 +69,14 @@
   <!-- Projection -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.5.0/proj4.js"></script>
 
-
 	<!-- Own JS -->
 	<script type="text/javascript" src="assets/js/main.js"></script>
-
   <script type="text/javascript">
 
   /*--------------------------------------------------------------
   # Accordion
   # taken from my website at semohr.github.io
   --------------------------------------------------------------*/
-
   var acc = document.getElementsByClassName("accordion");
   var i;
 
@@ -100,12 +100,9 @@
   # Loading div
   # taken from https://www.geeksforgeeks.org/how-to-show-page-loading-div-until-the-page-has-finished-loading/
   --------------------------------------------------------------*/
-
   window.onload = function() {
     // Disable spinner
     document.getElementById("loader").style.display = "none"
-    // Reselect all age group
-    document.getElementById("All age groups").checked = true
   };
   </script>
 </body>
