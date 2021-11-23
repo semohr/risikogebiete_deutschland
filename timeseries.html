@@ -1,35 +1,85 @@
 <!DOCTYPE html>
 <html lang="de" id="top">
 <head>
-  <!-- Required meta tags -->
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-	<title>Risikogebiete Deutschland</title>
-  <meta content="" name="description">
-  <meta content="COVID-19, RISIKO, DEUTSCHLAND" name="keywords">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-  <meta http-equiv="pragma" content="no-cache">
-  <meta http-equiv="expires" content="-1">
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Risikogebiete Deutschland</title>
+    <meta content="" name="description">
+    <meta content="COVID-19, RISIKO, DEUTSCHLAND" name="keywords">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="-1">
 
 
-  <!-- Bootstrap CSS -->
-  <link href="assets/css/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="assets/css/bootstrap/bootstrap.min.css" rel="stylesheet">
 
-  <!-- Master CSS -->
-  <link href="assets/css/main.css" rel="stylesheet">
+    <!-- Master CSS -->
+    <link href="assets/css/main.css" rel="stylesheet">
 
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/usnistgov/jsfive@master/dist/hdf5.js"></script>
+    <!-- Projection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.5.0/proj4.js"></script>
+
+    <!-- D3 js-->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <!-- HDF5 js-->
+    <script src="https://cdn.jsdelivr.net/gh/usnistgov/jsfive@master/dist/hdf5.js"></script>
+
+    <!-- Own utils-->
+    <script src="assets/js/utils.js"></script>
 </head>
 <body>
 
+<!-- Element for the map-->
+<div id="map__container"></div>
 
 </body>
 <script>
-var h5_data, geojson;
+
+/* Draw the map to an div container with id "map__container"
+*/ 
+function setup_svgmap(geojson){
+    // Get window size
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+
+    // Create svg inside map container
+    var svg = d3
+        .select("#map__container")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Define identity projection
+    // Own projection is done beforehand (see data loading)
+    var projection = d3.geoIdentity().reflectY(true).fitHeight(height,geojson);
+    var path = d3.geoPath(projection);
+
+    // Create colormap
+    const color = d3.scaleOrdinal(d3.schemeCategory10.slice(1, 5));
+
+    // Draw the map as svg
+    svg.selectAll("path")
+        .data(geojson.features)
+        .enter()
+        .append("path")
+        .attr("d",path)
+        .attr("fill", (d, i) => color(i));
+}
+
 // Load geojson file and fetch timeseries
 Promise.all([
-    d3.json("assets/data/minified_landkreise.geo.json"),
+    d3.json("assets/data/minified_landkreise.geo.json")
+        .then((r)=>{
+            // Own projection
+            project(
+                r,
+                '+proj=merc +lat_1=33 +lat_2=45 +lat_0=0 +lon_0=0'
+            );
+            return r
+        }),
     fetch("assets/data/timeseries.hdf5")
         .then((r)=>{
             return r.arrayBuffer()
@@ -38,7 +88,7 @@ Promise.all([
             return new hdf5.File(r)
         })
         .then((f)=>{
-            h5_data = {
+            let h5_data = {
                 date: f.get('data/date').value,
                 IdLandkreis: f.get('data/IdLandkreis').value,
                 Altersgruppe: f.get('data/Altersgruppe').value,
@@ -50,8 +100,8 @@ Promise.all([
             return h5_data;
         })
 ]).then((data)=>{
-    geojson = data[0];
-    let h5 = data[1];
+    // Plotting setup
+    setup_map(data[0]);
 });
 </script>
 </html>
