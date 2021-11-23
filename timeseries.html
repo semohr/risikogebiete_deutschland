@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de" id="top">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+	<title>Risikogebiete Deutschland</title>
+  <meta content="" name="description">
+  <meta content="COVID-19, RISIKO, DEUTSCHLAND" name="keywords">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="expires" content="-1">
+
+
+  <!-- Bootstrap CSS -->
+  <link href="assets/css/bootstrap/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Master CSS -->
+  <link href="assets/css/main.css" rel="stylesheet">
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/usnistgov/jsfive@master/dist/hdf5.js"></script>
+</head>
+<body>
+
+
+</body>
+<script>
+var h5_data, geojson;
+// Load geojson file and fetch timeseries
+Promise.all([
+    d3.json("assets/data/minified_landkreise.geo.json"),
+    fetch("assets/data/timeseries.hdf5")
+        .then((r)=>{
+            return r.arrayBuffer()
+        })
+        .then((r)=>{
+            return new hdf5.File(r)
+        })
+        .then((f)=>{
+            h5_data = {
+                date: f.get('data/date').value,
+                IdLandkreis: f.get('data/IdLandkreis').value,
+                Altersgruppe: f.get('data/Altersgruppe').value,
+                inzidenz: f.get('data/inzidenz').value,
+                weekly_cases: f.get('data/weekly_cases').value,
+                age_groups_label:  f.get('age_groups_label').value,
+                age_groups_values:  f.get('age_groups_value').value,
+            };
+            return h5_data;
+        })
+]).then((data)=>{
+    geojson = data[0];
+    let h5 = data[1];
+});
+</script>
+</html>
