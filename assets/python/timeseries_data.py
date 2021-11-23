@@ -100,11 +100,30 @@ begin = end-timedelta(days=7*16)
 data = data.loc[begin:end,:,:]
 
 
-""" # Save metadata for file size reasons
-"""
 
-metadata = []
-for level in range(3):
-    metadata.append(data.index.get_level_values(level=level).unique())
+# write as compressed hdf5
+import h5py
 
+data["date"] = data.apply(lambda row: row["date"].timestamp(), axis=1)
+data["IdLandkreis"] = data.apply(lambda row: float(row["IdLandkreis"]), axis=1)
 
+age_group_map = dict()
+age_group_map['A00-A04'] = 0.0
+age_group_map['A05-A14'] = 1.0
+age_group_map['A15-A34'] = 2.0
+age_group_map['A35-A59'] = 3.0
+age_group_map['A60-A79'] = 4.0
+age_group_map['A80+'] = 5.0
+age_group_map['total'] = 6.0
+age_group_map['unbekannt'] = 7.0
+data["Altersgruppe"] = data.apply(lambda row: age_group_map[row["Altersgruppe"]], axis=1)
+
+columns = [str(c) for c in data.columns]
+columns = np.array(columns, dtype=object)
+
+f = h5py.File("/Users/paul/Desktop/test2.hdf5", 'w')
+f.create_dataset("data", data=data, compression="gzip")
+f.create_dataset("columns", data = columns, dtype= h5py.special_dtype(vlen=str))
+f.create_dataset("age_groups_label", data = list(age_group_map.keys()))
+f.create_dataset("age_groups_value", data = np.array(list(age_group_map.values()), dtype="float"))
+f.close()
