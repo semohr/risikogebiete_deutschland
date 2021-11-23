@@ -103,27 +103,29 @@ data = data.loc[begin:end,:,:]
 
 # write as compressed hdf5
 import h5py
-
+data=data.reset_index()
 data["date"] = data.apply(lambda row: row["date"].timestamp(), axis=1)
-data["IdLandkreis"] = data.apply(lambda row: float(row["IdLandkreis"]), axis=1)
+data["IdLandkreis"] = data.apply(lambda row: row["IdLandkreis"], axis=1)
+data["weekly_cases"] = data.apply(lambda row: int(row["weekly_cases"]), axis=1)
 
 age_group_map = dict()
-age_group_map['A00-A04'] = 0.0
-age_group_map['A05-A14'] = 1.0
-age_group_map['A15-A34'] = 2.0
-age_group_map['A35-A59'] = 3.0
-age_group_map['A60-A79'] = 4.0
-age_group_map['A80+'] = 5.0
-age_group_map['total'] = 6.0
-age_group_map['unbekannt'] = 7.0
+age_group_map['A00-A04'] = 0
+age_group_map['A05-A14'] = 1
+age_group_map['A15-A34'] = 2
+age_group_map['A35-A59'] = 3
+age_group_map['A60-A79'] = 4
+age_group_map['A80+'] = 5
+age_group_map['total'] = 6
+age_group_map['unbekannt'] = 7
+
 data["Altersgruppe"] = data.apply(lambda row: age_group_map[row["Altersgruppe"]], axis=1)
 
 columns = [str(c) for c in data.columns]
 columns = np.array(columns, dtype=object)
 
-f = h5py.File("/Users/paul/Desktop/test2.hdf5", 'w')
-f.create_dataset("data", data=data, compression="gzip")
-f.create_dataset("columns", data = columns, dtype= h5py.special_dtype(vlen=str))
+f = h5py.File("../data/timeseries.hdf5", 'w')
+for c in data.columns:
+    f.create_dataset(f"data/{c}", data=data[c].to_numpy(), compression="gzip", compression_opts=9)
 f.create_dataset("age_groups_label", data = list(age_group_map.keys()))
-f.create_dataset("age_groups_value", data = np.array(list(age_group_map.values()), dtype="float"))
+f.create_dataset("age_groups_value", data = list(age_group_map.values()))
 f.close()
