@@ -39,12 +39,14 @@ var default_dataClasses  = {dataClasses: [{
         from: 1000,
         to: 2000
     }, {
-        from: 2000
+        from: 2000,
+        to:3000
+    },{
+        from: 3000
     }]
 };
-var default_colors = {colors: ['#15b01a', '#f0f921', '#fdb42f', '#ed7953', '#cb4679', '#9c179e', '#5c01a6', "#0d0887"]};
-var old_colors = {colors: ["#15b01a","#fac205","#f97c0e","#c50000","#8c53d1","#4d00fe","#00009c","#303030"]};
-
+var default_colors = {colors: ['#15b01a', '#f0f921', '#febd2a', '#f48849', '#db5c68', '#b83289', '#8b0aa5', '#5302a3', '#0d0887']};
+var old_colors = {colors: ["#15b01a","#fac205","#f97c0e","#c50000","#8c53d1","#4d00fe","#1f00cc","#00009c","#303030"]};
 
 /**
  * Main setup function to plot a highcharts map
@@ -54,7 +56,7 @@ function setup_highchartsmap(){
 
     //Load raw geojson
     var request = new XMLHttpRequest();
-    request.open("GET", mydir+"../data/landkreise_edited.geojson", false);
+    request.open("GET", mydir+"../data/minified_landkreise.geo.json", false);
     request.send(null)
     geo_json = JSON.parse(request.responseText);
     project(
@@ -101,7 +103,7 @@ function setup_highchartsmap(){
     }
 
     // Show data in console
-    console.log(data);
+    //console.log(data);
 
     //Create series dict
     var input_series = [{
@@ -153,7 +155,7 @@ function setup_highchartsmap(){
         //First add geojson data
         chart:{
             styleMode: true,
-            map: geo_json,
+            map:geo_json,
             allAreas: true,
             resetZoomButton: {
                 theme: {
