@@ -58,10 +58,13 @@ berlin_ags = [
 berlin = cases_7_day_sum.loc[berlin_ags,:,:].groupby(["date","Altersgruppe"]).sum()
 berlin = berlin.reset_index()
 berlin["IdLandkreis"] = 11000
+berlin_total = berlin.groupby(["date","IdLandkreis"]).sum().reset_index()
+berlin_total["Altersgruppe"] = "total"
 
 total = cases_7_day_sum.groupby(["date","IdLandkreis"]).sum()
 total = total.reset_index()
 total["Altersgruppe"] = "total"
+total = total.append(berlin_total)
 
 cases = cases_7_day_sum.reset_index()
 cases = cases.append(berlin)
@@ -72,7 +75,6 @@ for id in berlin_ags:
 
 cases = cases.set_index(["date", "IdLandkreis", "Altersgruppe"])
 cases = cases.sort_index()
-
 
 """ # Calculate age dependent incidence
 For effeciency reasons we use apply and groupby here, iterating all rows

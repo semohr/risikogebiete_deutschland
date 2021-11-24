@@ -33,23 +33,38 @@
 <body>
 
 <!-- Element for the map-->
-<div id="map__container"></div>
+<div id="map__container" style="display: inline-block; width: fit-content;"></div>
+
+<!-- Slider for iterating days-->
+<div class="slidecontainer">
+    <input type="range" min="-100" max="0" value="0" step="1" class="slider" id="slider_days" oninput=triggerTransition(this.value)>
+</div>
 
 </body>
 <script>
 
+/* ------------------------------------------------------------
+ *  Global variables
+ * ------------------------------------------------------------ */
+// Colormap
+var color = d3.scaleLinear()
+    .domain([10,25,100])
+    .range(["green", "orange", "red"]);
+// Data
+var h5_data, geojson;
+
+
+
 /* Draw the map to an div container with id "map__container"
 */ 
-function setup_svgmap(geojson){
+function setup_svgmap(){
     // Get window size
+    let height = window.innerHeight*0.95;
     var width = window.innerWidth;
-    var height = window.innerHeight;
-
     // Create svg inside map container
     var svg = d3
         .select("#map__container")
         .append("svg")
-        .attr("width", width)
         .attr("height", height);
 
     // Define identity projection
@@ -57,21 +72,78 @@ function setup_svgmap(geojson){
     var projection = d3.geoIdentity().reflectY(true).fitHeight(height,geojson);
     var path = d3.geoPath(projection);
 
-    // Create colormap
-    const color = d3.scaleOrdinal(d3.schemeCategory10.slice(1, 5));
-
     // Draw the map as svg
     svg.selectAll("path")
         .data(geojson.features)
         .enter()
         .append("path")
         .attr("d",path)
-        .attr("fill", (d, i) => color(i));
+        .attr("fill", (d, i) => {return color(i)});
+  
+    // Select inital some data
+    let date = new Date("2021-11-22").getTime()/1000; //YYYY-MM-DD
+    let age_group = "total";
+
+    update_geojson(date,age_group)
+
+    // Plot initial geojson data
+    svg.selectAll("path")
+        .data(geojson.features)
+        .enter()
+        .append("path")
+        .attr("d", path)
+        .attr("fill", d => color(h5_data.inzidenz[d.properties.index_data]));
+
+
+    // Draw legend in a new group
+    var colors = color.range().reverse().map((d,i)=>{
+        return {
+            color: d,
+            offset: String(i/(color.range().length-1)*100)+"%"
+        }
+    });
+    let legend_width = 20, legend_height = height/0.95*0.6;
+    add_legend_gradient(svg, colors, legend_width, legend_height,[svg.node().getBBox().width+1.5*legend_width,svg.node().getBBox().height/2-legend_height/2]);
+
+    // Update svg width
+    svg.attr("width",svg.node().getBBox().width);
+
 }
+
+/* Update geojsons data for timeseries plotting
+*/
+function update_geojson(date, age_group){
+    var index_1 = getAllIndexes(h5_data.date,date);
+    var index_2 = [];
+    index_1.forEach(element => {
+        if (h5_data.Altersgruppe[element] == h5_data.age_groups_label.indexOf(age_group)){
+            index_2.push(element);
+        }
+    });
+    geojson.features.forEach(el => {
+        const linkedData = index_2.find(d => h5_data.IdLandkreis[d] == parseInt(el.properties.AGS));
+        el.properties.index_data = linkedData;
+    });
+}
+
+function triggerTransition(i){
+    // Create colormap
+    update_geojson(new Date("2021-11-22").getTime()/1000 + 86400*i,"total");
+
+    let test = d3.select("svg")
+        .data(geojson.features)
+        .selectAll("path")
+        .transition()
+        .duration(1)
+        .attr("fill", d => {
+            return color(h5_data.inzidenz[d.properties.index_data])
+        });
+}    
+
 
 // Load geojson file and fetch timeseries
 Promise.all([
-    d3.json("assets/data/minified_landkreise.geo.json")
+    d3.json("assets/data/landkreise_edited.geojson")
         .then((r)=>{
             // Own projection
             project(
@@ -88,7 +160,7 @@ Promise.all([
             return new hdf5.File(r)
         })
         .then((f)=>{
-            let h5_data = {
+            h5_data = {
                 date: f.get('data/date').value,
                 IdLandkreis: f.get('data/IdLandkreis').value,
                 Altersgruppe: f.get('data/Altersgruppe').value,
@@ -101,7 +173,8 @@ Promise.all([
         })
 ]).then((data)=>{
     // Plotting setup
-    setup_map(data[0]);
+    geojson = data[0];
+    setup_svgmap();
 });
 </script>
 </html>
