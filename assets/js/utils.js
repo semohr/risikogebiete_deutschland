@@ -74,5 +74,26 @@ function getAllIndexes(arr, val) {
     return indexes;
 }
 
+// throttle function, enforces a minimum time interval
+function throttle(fn, interval) {
+    var lastCall, timeoutId;
+    return function () {
+      var now = new Date().getTime();
+      if (lastCall && now < (lastCall + interval) ) {
+        // if we are inside the interval we wait
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(function () {
+          lastCall = now;
+          fn.call();
+        }, interval - (now - lastCall) );
+      } else {
+        // otherwise, we directly call the function 
+        lastCall = now;
+        fn.call();
+      }
+    };
+  }
+
+
 // seconds * minutes * hours * milliseconds = 1 day 
 var oneDay = 60 * 60 * 24 * 1000;

@@ -33,11 +33,11 @@
 <body>
 
 <!-- Element for the map-->
-<div id="map__container" style="display: inline-block; width: fit-content;"></div>
+<div id="map__container" style="width: fit-content; height:95vh"></div>
 
 <!-- Slider for iterating days-->
 <div class="slidecontainer">
-    <input type="range" min="-100" max="0" value="0" step="1" class="slider" id="slider_days" oninput=triggerTransition(this.value)>
+    <input type="range" min="-100" max="0" value="0" step="1" class="slider" id="slider_days">
 </div>
 
 </body>
@@ -78,7 +78,10 @@ function setup_svgmap(){
         .enter()
         .append("path")
         .attr("d",path)
-        .attr("fill", (d, i) => {return color(i)});
+        .attr("fill", "white")
+        .attr("stroke", "white")
+        .attr("stroke-width","1.5");
+        
   
     // Select inital some data
     let date = new Date("2021-11-22").getTime()/1000; //YYYY-MM-DD
@@ -86,13 +89,8 @@ function setup_svgmap(){
 
     update_geojson(date,age_group)
 
-    // Plot initial geojson data
-    svg.selectAll("path")
-        .data(geojson.features)
-        .enter()
-        .append("path")
-        .attr("d", path)
-        .attr("fill", d => color(h5_data.inzidenz[d.properties.index_data]));
+    // Plot initial selected data
+    triggerTransition(0);
 
 
     // Draw legend in a new group
@@ -113,8 +111,26 @@ function setup_svgmap(){
 /* Update geojsons data for timeseries plotting
 */
 function update_geojson(date, age_group){
-    var index_1 = getAllIndexes(h5_data.date,date);
+
+
+    // We stop looking for more dates once
+    // we found the block with the same
+    // dates, they are always chronological
+    // since the data is sorted by date first!
+    var index_1 = [];
+    let found = false;
+    for(let i = 0; i < h5_data.date.length; i++){
+        if (h5_data.date[i] == date){
+            found = true;
+            index_1.push(i);
+        }
+        else if (found && index_1.length>0) {
+            break;
+        }
+    }
+    
     var index_2 = [];
+
     index_1.forEach(element => {
         if (h5_data.Altersgruppe[element] == h5_data.age_groups_label.indexOf(age_group)){
             index_2.push(element);
@@ -127,19 +143,19 @@ function update_geojson(date, age_group){
 }
 
 function triggerTransition(i){
-    // Create colormap
     update_geojson(new Date("2021-11-22").getTime()/1000 + 86400*i,"total");
 
     let test = d3.select("svg")
-        .data(geojson.features)
         .selectAll("path")
-        .transition()
-        .duration(1)
         .attr("fill", d => {
             return color(h5_data.inzidenz[d.properties.index_data])
         });
 }    
 
+//Add event to slider
+document.getElementById("slider_days").addEventListener("input", throttle(function() {
+    triggerTransition(document.getElementById("slider_days").value);
+},0));
 
 // Load geojson file and fetch timeseries
 Promise.all([
