@@ -73,14 +73,17 @@ function setup_svgmap(){
     var path = d3.geoPath(projection);
 
     // Draw the map as svg
-    svg.selectAll("path")
+    svg.append("g").selectAll("path")
         .data(geojson.features)
         .enter()
         .append("path")
         .attr("d",path)
         .attr("fill", "white")
         .attr("stroke", "white")
-        .attr("stroke-width","1.5");
+        .attr("stroke-width","1.5")
+        .on("mouseover",mouseoverHandler)
+        .on("mouseout",mouseoutHandler)
+        .on("click",clickHandler);
         
   
     // Select inital some data
@@ -101,18 +104,49 @@ function setup_svgmap(){
         }
     });
     let legend_width = 20, legend_height = height/0.95*0.6;
-    add_legend_gradient(svg, colors, legend_width, legend_height,[svg.node().getBBox().width+1.5*legend_width,svg.node().getBBox().height/2-legend_height/2]);
+
+    let legend = svg.append("g");
+
+    add_legend_gradient(legend,
+        legend_width, legend_height,
+        [svg.node().getBBox().width+1.5*legend_width,svg.node().getBBox().height/2-legend_height/2],
+        colors
+    );
 
     // Update svg width
     svg.attr("width",svg.node().getBBox().width);
 
 }
 
+/** 
+ * Mouse Handler
+ * on mouseover: 
+ *      Changes the color of the element to a lighter hue
+ *      Popup with current case numbers  
+ * on mouseout: 
+ *      Changes color back
+*/
+function mouseoverHandler(d){
+    let this_ele = d3.select(this)
+    // Save old color
+    this_ele.attr("old_color",this_ele.attr("fill"));
+    // Change color to lighter hue
+    this_ele.attr("fill",pSBC(0.3,this_ele.attr("old_color")));
+}
+function mouseoutHandler(d){
+    // Restore old color
+    d3.select(this).attr("fill",d3.select(this).attr("old_color"));
+}
+
+function clickHandler(d){
+    // Get date and age group
+}
+
+
+
 /* Update geojsons data for timeseries plotting
 */
 function update_geojson(date, age_group){
-
-
     // We stop looking for more dates once
     // we found the block with the same
     // dates, they are always chronological
