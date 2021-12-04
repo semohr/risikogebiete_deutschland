@@ -54,7 +54,7 @@ function setup_highchartsmap(){
 
     //Load raw geojson
     var request = new XMLHttpRequest();
-    request.open("GET", mydir+"../data/landkreise_edited.geojson", false);
+    request.open("GET", mydir+"../data/minified_landkreise.geo.json", false);
     request.send(null)
     geo_json = JSON.parse(request.responseText);
     project(
