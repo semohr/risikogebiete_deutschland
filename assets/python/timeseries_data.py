@@ -1,4 +1,3 @@
-import ujson
 import pandas as pd
 import covid19_inference as cov19
 import numpy as np
@@ -6,7 +5,7 @@ from datetime import date,timedelta
 
 
 
-# Load data with cov19npis module
+# Load data with covid19inference module
 rki = cov19.data_retrieval.RKI()
 rki.download_all_available_data()
 
@@ -21,8 +20,10 @@ pop_rki_aligned["unbekannt"] = pop_rki_aligned.sum(axis=1) * 0.01  # 1% not know
 pop_rki_aligned["total"] = pop_rki_aligned.sum(axis=1)
 
 
-# New cases with rolling 7 day sum:
+# Get raw data from retriever
 data_rki = rki.data
+
+# Last date in dataset
 date = rki.data["date"].max()
 index = pd.date_range(rki.data["date"].min(), rki.data["date"].max())
 
@@ -77,7 +78,7 @@ cases = cases.set_index(["date", "IdLandkreis", "Altersgruppe"])
 cases = cases.sort_index()
 
 """ # Calculate age dependent incidence
-For effeciency reasons we use apply and groupby here, iterating all rows
+For efficiency reasons we use apply and groupby here, iterating all rows
 would take forever
 """
 def map_func(a):
@@ -94,7 +95,7 @@ data = data.rename(columns={"confirmed":"inzidenz"})
 data["weekly_cases"]=cases["confirmed"]
 data = data.sort_index()
 
-""" Select last 20 weeks
+""" Select last 16 weeks
 """
 end =  date.today()
 begin = end-timedelta(days=7*16)
@@ -103,7 +104,8 @@ data = data.loc[begin:end,:,:]
 
 
 
-# write as compressed hdf5
+""" write as compressed hdf5
+"""
 import h5py
 data=data.reset_index()
 data["date"] = data.apply(lambda row: row["date"].timestamp(), axis=1)
