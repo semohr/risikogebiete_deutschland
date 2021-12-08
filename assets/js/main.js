@@ -101,7 +101,7 @@ function setup_highchartsmap(){
     }
 
     // Show data in console
-    //console.log(data);
+    console.log(data);
 
     //Create series dict
     var input_series = [{
@@ -153,7 +153,7 @@ function setup_highchartsmap(){
         //First add geojson data
         chart:{
             styleMode: true,
-            map:geo_json,
+            map: geo_json,
             allAreas: true,
             resetZoomButton: {
                 theme: {

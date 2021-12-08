@@ -181,3 +181,44 @@ function throttle(fn, interval) {
 
 // seconds * minutes * hours * milliseconds = 1 day 
 var oneDay = 60 * 60 * 24 * 1000;
+
+// ---------------------------------------
+// Circle with population density as size transitions
+// ---------------------------------------
+function circles_svg(){
+    // Transition paths to other shape
+    var paths = d3.select("svg").selectAll("path");
+    paths.transition()
+        .duration(3000)
+        .ease(d3.easeSinInOut)
+        .attr('d', circlePath);
+}
+
+function _points_circle(center,radius,num_points){
+    var points = [];
+    for (var i = 0; i < num_points; i++) {
+        var angle = i * 2 * Math.PI / num_points;
+        points.push([center[0] + radius * Math.cos(angle),center[1] + radius * Math.sin(angle)]);
+    }
+    return points;
+}
+ 
+function circlePath(d,i){
+    var n_points = this.pathSegList.length;
+    var center = path.centroid(d);
+    var r = 5;
+    var points = _points_circle(center,r,n_points+1);
+    //convert to string
+    let str = "M" + points[0][0] + "," + points[0][1];
+    for (let i = 1; i < points.length; i++) {
+        str += "L" + points[i][0] + "," + points[i][1];
+    }
+    str+="Z";
+    return str
+}
+
+function circlePathInterpolator(d,i){
+    var previous_path = d3.select(this).attr('d');
+    var str = circlePath(d,i);
+    return d3.interpolatePath(previous_path,str);
+}

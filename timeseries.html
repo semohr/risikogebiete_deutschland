@@ -11,7 +11,6 @@
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="-1">
 
-
     <!-- Bootstrap CSS -->
     <link href="assets/css/bootstrap/bootstrap.min.css" rel="stylesheet">
 
@@ -23,6 +22,7 @@
 
     <!-- D3 js-->
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="assets/js/d3-interpolate-path.min.js"></script>
 
     <!-- HDF5 js-->
     <script src="https://cdn.jsdelivr.net/gh/usnistgov/jsfive@master/dist/hdf5.js"></script>
@@ -57,6 +57,8 @@ var h5_data, geojson;
 
 /* Draw the map to an div container with id "map__container"
 */ 
+var svg;
+var path;
 function setup_svgmap(){
     // Get window size
     let height = window.innerHeight*0.95;
@@ -70,7 +72,7 @@ function setup_svgmap(){
     // Define identity projection
     // Own projection is done beforehand (see data loading)
     var projection = d3.geoIdentity().reflectY(true).fitHeight(height,geojson);
-    var path = d3.geoPath(projection);
+    path = d3.geoPath(projection);
 
     // Draw the map as svg
     svg.append("g").selectAll("path")
@@ -142,8 +144,6 @@ function clickHandler(d){
     // Get date and age group
 }
 
-
-
 /* Update geojsons data for timeseries plotting
 */
 function update_geojson(date, age_group){
@@ -162,14 +162,16 @@ function update_geojson(date, age_group){
             break;
         }
     }
-    
-    var index_2 = [];
 
+    // Get the data for the selected age group
+    var index_2 = [];
     index_1.forEach(element => {
         if (h5_data.Altersgruppe[element] == h5_data.age_groups_label.indexOf(age_group)){
             index_2.push(element);
         }
     });
+
+    // Update the data
     geojson.features.forEach(el => {
         const linkedData = index_2.find(d => h5_data.IdLandkreis[d] == parseInt(el.properties.AGS));
         el.properties.index_data = linkedData;
