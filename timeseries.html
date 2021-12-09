@@ -98,7 +98,7 @@ for (let i=0;i<classes.length;i++){
 }
 
 // Data
-var svg, strides, incidence, weekly_cases, index, geojson, date, dt_idx;
+var svg, strides, incidence, weekly_cases, index, geojson, date, dt_idx, path;
 var age_group = "total";
 var formatDate = d3.timeFormat("%d.%m.%g");
 var age_groups = ["A00-A04","A05-A14","A15-A34","A35-A59","A60-A79","A80+"];
@@ -139,7 +139,7 @@ function setup_svgmap(){
     let translate = projection.translate();
     projection.translate([translate[0], translate[1] + padding]);
 
-    var path = d3.geoPath(projection);
+    path = d3.geoPath(projection);
 
     // Draw the map as svg
     let map = svg.append("g")
@@ -161,17 +161,6 @@ function setup_svgmap(){
     end = dates[dates.length - 1]
     d3.select("#slider_days").attr('min', start).attr('max',end).property("value",end).dispatch("input");
 
-    inputs = document.querySelectorAll("input[type='radio']")
-    for (input of inputs){
-        input.onclick = function(e){
-                age_group = e.target.id;
-                triggerTransition();
-            }
-        }
-
-
-    // Update svg width
-    plot.attr("width",plot.node().getBBox().width);
     // Setup inputs to trigger transitions
     var inputs = document.querySelectorAll("input[type='radio']")
     for (input of inputs){
