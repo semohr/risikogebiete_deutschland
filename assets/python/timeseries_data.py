@@ -1,6 +1,7 @@
 import pandas as pd
 import covid19_inference as cov19
 import numpy as np
+import json
 from datetime import date,timedelta
 
 
@@ -112,24 +113,25 @@ data["date"] = data.apply(lambda row: row["date"].timestamp(), axis=1)
 data["IdLandkreis"] = data.apply(lambda row: row["IdLandkreis"], axis=1)
 data["weekly_cases"] = data.apply(lambda row: int(row["weekly_cases"]), axis=1)
 
-age_group_map = dict()
-age_group_map['A00-A04'] = 0
-age_group_map['A05-A14'] = 1
-age_group_map['A15-A34'] = 2
-age_group_map['A35-A59'] = 3
-age_group_map['A60-A79'] = 4
-age_group_map['A80+'] = 5
-age_group_map['total'] = 6
-age_group_map['unbekannt'] = 7
+index = { x: dict(zip(map(int,data[x].unique()),range(len(data[x].unique())))) for x in ("date","IdLandkreis")}
+index["Altersgruppe"] = dict(zip(map(str,data["Altersgruppe"].unique()),range(len(data["Altersgruppe"].unique()))))
 
-data["Altersgruppe"] = data.apply(lambda row: age_group_map[row["Altersgruppe"]], axis=1)
+cases = np.full((len(index["date"]),len(index["IdLandkreis"]),len(index["Altersgruppe"])),-1)
+incidence = np.full((len(index["date"]),len(index["IdLandkreis"]),len(index["Altersgruppe"])),-1.0)
 
-columns = [str(c) for c in data.columns]
-columns = np.array(columns, dtype=object)
+def get_index(date,IdLandkreis,Altersgruppe):
+    return (index["date"][date],index["IdLandkreis"][IdLandkreis],index["Altersgruppe"][Altersgruppe])
 
-f = h5py.File("../data/timeseries.hdf5", 'w')
-for c in data.columns:
-    f.create_dataset(f"data/{c}", data=data[c].to_numpy(), compression="gzip", compression_opts=9)
-f.create_dataset("age_groups_label", data = list(age_group_map.keys()))
-f.create_dataset("age_groups_value", data = list(age_group_map.values()))
-f.close()
+
+for r in data.iterrows():
+    row = r[1]
+    idx = get_index(row["date"],row["IdLandkreis"],row["Altersgruppe"])
+    cases[idx]=row["weekly_cases"]
+    incidence[idx]=row["inzidenz"]
+
+with h5py.File("../data/timeseries_nd.hdf5", 'w') as f:
+    f.create_dataset(f"data/incidence", data=incidence, compression="gzip", compression_opts=9)
+    f.create_dataset(f"data/weekly_cases", data=cases, compression="gzip", compression_opts=9)
+
+with open('../data/array_index.json', 'w') as f:
+    f.write(json.dumps(index))

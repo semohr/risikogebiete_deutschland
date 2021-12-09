@@ -11,6 +11,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="-1">
 
+
     <!-- Bootstrap CSS -->
     <link href="assets/css/bootstrap/bootstrap.min.css" rel="stylesheet">
 
@@ -22,7 +23,6 @@
 
     <!-- D3 js-->
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="assets/js/d3-interpolate-path.min.js"></script>
 
     <!-- HDF5 js-->
     <script src="https://cdn.jsdelivr.net/gh/usnistgov/jsfive@master/dist/hdf5.js"></script>
@@ -33,11 +33,41 @@
 <body>
 
 <!-- Element for the map-->
-<div id="map__container" style="width: 100%; height:95vh; margin: auto;"></div>
+<div id="map__container" style="width: 100%; height:95vh; margin: auto;" align="center"></div>
 
 <!-- Slider for iterating days-->
-<div class="slidecontainer">
-    <input type="range" min="-100" max="0" value="0" step="1" class="slider" id="slider_days">
+
+<div id="inputs" style="width: max-content;">
+    <div class="accordion active">
+      <h5>Altersgruppen</h5> 
+    </div>
+    <div class="panel">
+      <ul>
+      <li class="radio-inline"><input id="total" type="radio" name="optradio" checked="">Alle</li>
+      <li class="radio-inline"><input id="A00-A04" type="radio" name="optradio"><label for="A00-A04">A00-A04</label></li>
+      <li class="radio-inline"><input id="A05-A14" type="radio" name="optradio"><label for="A05-A14">A05-A14</label></li>
+      <li class="radio-inline"><input id="A15-A34" type="radio" name="optradio"><label for="A15-A34">A15-A34</label></li>
+      <li class="radio-inline"><input id="A35-A59" type="radio" name="optradio"><label for="A35-A59">A35-A59</label></li>
+      <li class="radio-inline"><input id="A60-A79" type="radio" name="optradio"><label for="A60-A79">A60-A79</label></li>
+      <li class="radio-inline"><input id="A80+" type="radio" name="optradio"><label for="A80+">A80+</label></li>
+      </ul>
+    </div>
+    <hr style="margin-top: 0.25em; margin-bottom: 0.25em;">
+    <div class="accordion active">
+      <h5>Datum</h5> 
+    </div>
+    <input type="range" step="86400" style="display: inline-block;" id="slider_days">
+    <span id="date"></span>
+    </div>
+</div>
+
+<div id="legend" style="width max-content;">
+    <div class="accordion active">
+      <h5>Fälle/100.000 EW</h5> 
+    </div>
+    <div class="accordion active">
+      <h5>in der jeweiligen Altersgruppe</h5> 
+    </div>
 </div>
 
 </body>
@@ -47,33 +77,64 @@
  *  Global variables
  * ------------------------------------------------------------ */
 // Colormap
+var classes = [25,50,100,200,500,1000,2000]
+var colors = ['#15b01a', '#f0f921', '#fdb42f', '#ed7953', '#cb4679', '#9c179e', '#5c01a6', "#0d0887"];
 var color = d3.scaleLinear()
-    .domain([10,25,100])
-    .range(["green", "orange", "red"]);
+    .domain(classes)
+    .range(colors);
+
+var legend = d3.select("#legend")
+for (let i=0;i<classes.length;i++){
+    if (i == 0) {text = " < " + classes[i];}
+    else { 
+            if (i == (classes.length-1)) text = " "+classes[i]+" >";
+            else text = " "+classes[i]+" < "+classes[i+1];
+        }
+    div = legend.append("div");
+    div.append("div").attr("class","color-box").style("background-color",colors[i]);
+    div.append("span").text(text);
+}
+
 // Data
-var h5_data, geojson;
+var plot, strides, incidence, weekly_cases, index, geojson, date, dt_idx;
+var age_group = "total";
+var formatDate = d3.timeFormat("%d.%m.%g");
+
+var age_groups = ["A00-A04","A05-A14","A15-A34","A35-A59","A60-A79","A80+"];
 
 
+var tooltip = d3.select("#map__container")
+    .append("div")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "1px")
+    .style("border-radius", "5px")
+    .style("padding", "10px")
+    .style("pointer-events", "none")
+    .style("background-color", "rgba(200,200,200,0.8)")
+    .style("font-size", "10px")
+    .html("");
 
 /* Draw the map to an div container with id "map__container"
 */ 
-var svg;
-var path;
 function setup_svgmap(){
     // Get window size
     let height = window.innerHeight*0.95;
     var width = window.innerWidth;
     // Create svg inside map container
-    var svg = d3
+    plot = d3
         .select("#map__container")
         .append("svg")
+        .style("display", "block")
         .attr("width", width)
         .attr("height", height);
 
     // Define identity projection
     // Own projection is done beforehand (see data loading)
     var projection = d3.geoIdentity().reflectY(true).fitHeight(height,geojson);
-    path = d3.geoPath(projection);
+    var path = d3.geoPath(projection);
 
     // Draw the map as svg
     let map = svg.append("g")
@@ -83,39 +144,27 @@ function setup_svgmap(){
         .append("path")
         .attr("d",path)
         .attr("fill", "white")
-        .attr("stroke", "white")
-        .attr("stroke-width","1.5")
+        .attr("stroke", "gray")
+        .attr("stroke-width","0.8")
         .on("mouseover",mouseoverHandler)
         .on("mouseout",mouseoutHandler)
-        .on("click",clickHandler);
-        
+        .on("mousemove",mousemoveHandler)
   
     // Select inital some data
-    let date = new Date("2021-11-22").getTime()/1000; //YYYY-MM-DD
-    let age_group = "total";
-
-    update_geojson(date,age_group)
-
-    // Plot initial selected data
-    triggerTransition(0);
+    dates = Object.keys(index.date)
+    start = dates[0]
+    end = dates[dates.length - 1]
+    d3.select("#slider_days").attr('min', start).attr('max',end).property("value",end).dispatch("input");
 
 
-    // Draw legend in a new group
-    var colors = color.range().reverse().map((d,i)=>{
-        return {
-            color: d,
-            offset: String(i/(color.range().length-1)*100)+"%"
+    inputs = document.querySelectorAll("input[type='radio']")
+    for (input of inputs){
+        input.onclick = function(e){
+                age_group = e.target.id;
+                triggerTransition();
+            }
         }
-    });
-    let legend_width = 20, legend_height = height/0.95*0.6;
 
-    let legend = svg.append("g");
-
-    add_legend_gradient(legend,
-        legend_width, legend_height,
-        [svg.node().getBBox().width+1.5*legend_width,svg.node().getBBox().height/2-legend_height/2],
-        colors
-    );
 
     //Set viewbox
     svg.attr("viewBox", [0-width/2+svg.node().getBBox().width/2,0,width,height])
@@ -125,77 +174,96 @@ function setup_svgmap(){
     d3.select('svg').call(zoom);
 }
 
-/** 
- * Mouse Handler
- * on mouseover: 
- *      Changes the color of the element to a lighter hue
- *      Popup with current case numbers  
- * on mouseout: 
- *      Changes color back
-*/
 function mouseoverHandler(d){
     let this_ele = d3.select(this)
     // Save old color
     this_ele.attr("old_color",this_ele.attr("fill"));
     // Change color to lighter hue
     this_ele.attr("fill",pSBC(0.3,this_ele.attr("old_color")));
+    tooltip.interrupt();
+    tooltip.style("visibility", "visible");
+    tooltip.html(tooltipText(this));
 }
 function mouseoutHandler(d){
     // Restore old color
     d3.select(this).attr("fill",d3.select(this).attr("old_color"));
+    tooltip.transition().delay(1000).style("visibility", "hidden");
 }
 
-function clickHandler(d){
-    // Get date and age group
+function mousemoveHandler(d){
+    r = tooltip.node().getBoundingClientRect();
+    tooltip.style("left", (plot.node().getBoundingClientRect().left+d3.pointer(d,this)[0]-(0.5*(r.width)))+"px")
+           .style("top",  (plot.node().getBoundingClientRect().top+d3.pointer(d,this)[1]-r.height)+"px");
 }
+
+function tooltipText(element){
+        console.log(element.__data__.properties);
+        str = `
+            <h5> ${element.__data__.properties["BEZ"]} ${element.__data__.properties["GEN"]} </h5>
+            <hr>
+            <table>
+                <tr>
+                    <th style="text-align: left; padding-right:10px;">Altersgruppe</th>
+                    <th style="text-align: right;padding-left: 10px">Fälle der letzte Woche</th>
+                    <th style="text-align: right;padding-left: 10px">pro 100.000 EW</th>
+                </tr>
+            `;
+            lk_idx = index["IdLandkreis"][parseInt(element.__data__.properties.AGS)] 
+            ag_idx = index["Altersgruppe"]["total"];
+            i = dt_idx * strides[0] + lk_idx * strides[1] + ag_idx * strides[2]
+            str +=`
+                    <tr>
+                        <td>Alle</td>
+                        <td style="text-align: right;">${weekly_cases[i]}</td>
+                        <td style="text-align: right;">${incidence[i].toFixed(2)}</td>
+                    </tr>
+                `;
+            for (a of age_groups) {
+                ag_idx = index["Altersgruppe"][a];
+                i = dt_idx * strides[0] + lk_idx * strides[1] + ag_idx * strides[2]
+                str +=`
+                    <tr>
+                        <td>${a}</td>
+                        <td style="text-align: right;">${weekly_cases[i]}</td>
+                        <td style="text-align: right;">${incidence[i].toFixed(2)}</td>
+                    </tr>
+                    `;    			
+            }
+            str += "</table>";
+            return str
+    }
+
+
+
 
 /* Update geojsons data for timeseries plotting
 */
 function update_geojson(date, age_group){
-    // We stop looking for more dates once
-    // we found the block with the same
-    // dates, they are always chronological
-    // since the data is sorted by date first!
-    var index_1 = [];
-    let found = false;
-    for(let i = 0; i < h5_data.date.length; i++){
-        if (h5_data.date[i] == date){
-            found = true;
-            index_1.push(i);
-        }
-        else if (found && index_1.length>0) {
-            break;
-        }
-    }
-
-    // Get the data for the selected age group
-    var index_2 = [];
-    index_1.forEach(element => {
-        if (h5_data.Altersgruppe[element] == h5_data.age_groups_label.indexOf(age_group)){
-            index_2.push(element);
-        }
-    });
-
-    // Update the data
+    
+    dt_idx = index["date"][date];
+    ag_idx = index["Altersgruppe"][age_group];
+    i = dt_idx*strides[0]+ag_idx*strides[2]
     geojson.features.forEach(el => {
-        const linkedData = index_2.find(d => h5_data.IdLandkreis[d] == parseInt(el.properties.AGS));
+        const linkedData = incidence[index["IdLandkreis"][parseInt(el.properties.AGS)]*strides[1]+i];
         el.properties.index_data = linkedData;
     });
 }
 
-function triggerTransition(i){
-    update_geojson(new Date("2021-11-22").getTime()/1000 + 86400*i,"total");
+function triggerTransition(){
+    update_geojson(date,age_group);
+    d3.select("#date").html(formatDate(date*1000));
 
     let test = d3.select("svg")
         .selectAll("path")
         .attr("fill", d => {
-            return color(h5_data.inzidenz[d.properties.index_data])
+            return color(d.properties.index_data)
         });
 }    
 
 //Add event to slider
 document.getElementById("slider_days").addEventListener("input", throttle(function() {
-    triggerTransition(document.getElementById("slider_days").value);
+    date = document.getElementById("slider_days").value;
+    triggerTransition();
 },0));
 
 // Load geojson file and fetch timeseries
@@ -209,7 +277,12 @@ Promise.all([
             );
             return r
         }),
-    fetch("assets/data/timeseries.hdf5")
+    d3.json("assets/data/array_index.json")
+        .then((r)=>{
+                index = r;
+                return index
+            }),
+    fetch("assets/data/timeseries_nd.hdf5")
         .then((r)=>{
             return r.arrayBuffer()
         })
@@ -217,16 +290,12 @@ Promise.all([
             return new hdf5.File(r)
         })
         .then((f)=>{
-            h5_data = {
-                date: f.get('data/date').value,
-                IdLandkreis: f.get('data/IdLandkreis').value,
-                Altersgruppe: f.get('data/Altersgruppe').value,
-                inzidenz: f.get('data/inzidenz').value,
-                weekly_cases: f.get('data/weekly_cases').value,
-                age_groups_label:  f.get('age_groups_label').value,
-                age_groups_values:  f.get('age_groups_value').value,
-            };
-            return h5_data;
+           incidence = f.get('data/incidence').value;
+           weekly_cases = f.get('data/weekly_cases').value;
+           strides = []
+           s = 1
+           f.get('data/incidence').shape.reverse().forEach(function(item) {strides.push(s);s=s*item;});
+           strides = strides.reverse();
         })
 ]).then((data)=>{
     // Plotting setup
