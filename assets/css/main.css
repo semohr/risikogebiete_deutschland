@@ -38,6 +38,23 @@ input {
 	border-radius: 5px;
 }
 
+.color-box {
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+    background-color: #ccc;
+}
+
+#legend{
+	position: fixed;
+	display: grid;
+	bottom: 10px;
+	left: 10px;
+	padding: 5px;
+	background-color: rgba(0,0,0,0.1);
+	border-radius: 5px;
+}
+
 table {
  border-collapse: collapse;
 }
