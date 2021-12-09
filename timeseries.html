@@ -161,6 +161,17 @@ function setup_svgmap(){
     end = dates[dates.length - 1]
     d3.select("#slider_days").attr('min', start).attr('max',end).property("value",end).dispatch("input");
 
+    inputs = document.querySelectorAll("input[type='radio']")
+    for (input of inputs){
+        input.onclick = function(e){
+                age_group = e.target.id;
+                triggerTransition();
+            }
+        }
+
+
+    // Update svg width
+    plot.attr("width",plot.node().getBBox().width);
     // Setup inputs to trigger transitions
     var inputs = document.querySelectorAll("input[type='radio']")
     for (input of inputs){
@@ -188,7 +199,6 @@ function mouseoverHandler(d){
     // Change color to lighter hue
     this_ele.attr("fill",pSBC(0.3,this_ele.attr("old_color")));
 
-    // Interrupts the active transition
     tooltip.interrupt();
     tooltip.style("visibility", "visible");
     tooltip.html(tooltipText(this));
@@ -257,6 +267,7 @@ function update_geojson(date, age_group){
 function triggerTransition(){
     update_geojson(date,age_group);
     d3.select("#date").html(formatDate(date*1000));
+  
     let test = d3.select("svg")
         .selectAll("path")
         .attr("fill", d => {
