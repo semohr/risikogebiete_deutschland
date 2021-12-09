@@ -31,9 +31,11 @@
     <script src="assets/js/utils.js"></script>
 </head>
 <body>
+<!-- Spinning loader -->
+<div id="loader" class="center"></div>
 
 <!-- Element for the map-->
-<div id="map__container" style="width: fit-content; height:95vh; margin: auto;" align="center"></div>
+<div id="map__container" style="width: 100%; height:100vh; margin: auto;" align="center"></div>
 
 <!-- Slider for iterating days-->
 
@@ -96,13 +98,12 @@ for (let i=0;i<classes.length;i++){
 }
 
 // Data
-var plot, strides, incidence, weekly_cases, index, geojson, date, dt_idx;
+var svg, strides, incidence, weekly_cases, index, geojson, date, dt_idx;
 var age_group = "total";
 var formatDate = d3.timeFormat("%d.%m.%g");
-
 var age_groups = ["A00-A04","A05-A14","A15-A34","A35-A59","A60-A79","A80+"];
 
-
+// Setup tooltip div
 var tooltip = d3.select("#map__container")
     .append("div")
     .style("position", "absolute")
@@ -121,22 +122,28 @@ var tooltip = d3.select("#map__container")
 */ 
 function setup_svgmap(){
     // Get window size
-    let height = window.innerHeight*0.95;
+    let height = window.innerHeight;
     var width = window.innerWidth;
     // Create svg inside map container
-    plot = d3
+    svg = d3
         .select("#map__container")
         .append("svg")
         .style("display", "block")
+        .attr("width", width)
         .attr("height", height);
 
     // Define identity projection
     // Own projection is done beforehand (see data loading)
-    var projection = d3.geoIdentity().reflectY(true).fitHeight(height,geojson);
+    let padding = 10;
+    var projection = d3.geoIdentity().reflectY(true).fitHeight(height-padding*2,geojson);
+    let translate = projection.translate();
+    projection.translate([translate[0], translate[1] + padding]);
+
     var path = d3.geoPath(projection);
 
     // Draw the map as svg
-    plot.append("g").selectAll("path")
+    let map = svg.append("g")
+    map.selectAll("path")
         .data(geojson.features)
         .enter()
         .append("path")
@@ -148,12 +155,11 @@ function setup_svgmap(){
         .on("mouseout",mouseoutHandler)
         .on("mousemove",mousemoveHandler)
   
-    // Select inital some data
+    // Select initial data
     dates = Object.keys(index.date)
     start = dates[0]
     end = dates[dates.length - 1]
     d3.select("#slider_days").attr('min', start).attr('max',end).property("value",end).dispatch("input");
-
 
     inputs = document.querySelectorAll("input[type='radio']")
     for (input of inputs){
@@ -166,15 +172,33 @@ function setup_svgmap(){
 
     // Update svg width
     plot.attr("width",plot.node().getBBox().width);
+    // Setup inputs to trigger transitions
+    var inputs = document.querySelectorAll("input[type='radio']")
+    for (input of inputs){
+        input.onclick = function(e){
+            age_group = e.target.id;
+            triggerTransition();
+        }
+    }
 
+    //Set viewbox
+    svg.attr("viewBox", [0-width/2+svg.node().getBBox().width/2,0,width,height])
+
+    // Set zoom handler
+    const handleZoom = (e) => map.attr('transform', e.transform);
+    const zoom = d3.zoom().on('zoom', handleZoom);
+    d3.select('svg').call(zoom);
 }
 
 function mouseoverHandler(d){
     let this_ele = d3.select(this)
+
     // Save old color
     this_ele.attr("old_color",this_ele.attr("fill"));
+
     // Change color to lighter hue
     this_ele.attr("fill",pSBC(0.3,this_ele.attr("old_color")));
+
     tooltip.interrupt();
     tooltip.style("visibility", "visible");
     tooltip.html(tooltipText(this));
@@ -186,55 +210,51 @@ function mouseoutHandler(d){
 }
 
 function mousemoveHandler(d){
+    //console.log(d3.event.pageX,d3.event.pageY)
     r = tooltip.node().getBoundingClientRect();
-    tooltip.style("left", (plot.node().getBoundingClientRect().left+d3.pointer(d,this)[0]-(0.5*(r.width)))+"px")
-           .style("top",  (plot.node().getBoundingClientRect().top+d3.pointer(d,this)[1]-r.height)+"px");
+    tooltip.style("left", (svg.node().getBoundingClientRect().left+d3.pointer(d,window)[0])+"px")
+           .style("top",  (svg.node().getBoundingClientRect().top+d3.pointer(d,window)[1]-r.height)+"px");
 }
 
 function tooltipText(element){
-        console.log(element.__data__.properties);
-        str = `
-            <h5> ${element.__data__.properties["BEZ"]} ${element.__data__.properties["GEN"]} </h5>
-            <hr>
-            <table>
-                <tr>
-                    <th style="text-align: left; padding-right:10px;">Altersgruppe</th>
-                    <th style="text-align: right;padding-left: 10px">Fälle der letzte Woche</th>
-                    <th style="text-align: right;padding-left: 10px">pro 100.000 EW</th>
-                </tr>
-            `;
-            lk_idx = index["IdLandkreis"][parseInt(element.__data__.properties.AGS)] 
-            ag_idx = index["Altersgruppe"]["total"];
-            i = dt_idx * strides[0] + lk_idx * strides[1] + ag_idx * strides[2]
-            str +=`
-                    <tr>
-                        <td>Alle</td>
-                        <td style="text-align: right;">${weekly_cases[i]}</td>
-                        <td style="text-align: right;">${incidence[i].toFixed(2)}</td>
-                    </tr>
-                `;
-            for (a of age_groups) {
-                ag_idx = index["Altersgruppe"][a];
-                i = dt_idx * strides[0] + lk_idx * strides[1] + ag_idx * strides[2]
-                str +=`
-                    <tr>
-                        <td>${a}</td>
-                        <td style="text-align: right;">${weekly_cases[i]}</td>
-                        <td style="text-align: right;">${incidence[i].toFixed(2)}</td>
-                    </tr>
-                    `;    			
-            }
-            str += "</table>";
-            return str
+    str = `
+        <h5> ${element.__data__.properties["BEZ"]} ${element.__data__.properties["GEN"]} </h5>
+        <hr>
+        <table>
+            <tr>
+                <th style="text-align: left; padding-right:10px;">Altersgruppe</th>
+                <th style="text-align: right;padding-left: 10px">Fälle der letzte Woche</th>
+                <th style="text-align: right;padding-left: 10px">pro 100.000 EW</th>
+            </tr>
+        `;
+    lk_idx = index["IdLandkreis"][parseInt(element.__data__.properties.AGS)] 
+    ag_idx = index["Altersgruppe"]["total"];
+    i = dt_idx * strides[0] + lk_idx * strides[1] + ag_idx * strides[2];
+    str +=`
+            <tr>
+                <td>Alle</td>
+                <td style="text-align: right;">${weekly_cases[i]}</td>
+                <td style="text-align: right;">${incidence[i].toFixed(0)}</td>
+            </tr>
+        `;
+    for (a of age_groups) {
+        ag_idx = index["Altersgruppe"][a];
+        i = dt_idx * strides[0] + lk_idx * strides[1] + ag_idx * strides[2];
+        str +=`
+            <tr>
+                <td>${a}</td>
+                <td style="text-align: right;">${weekly_cases[i]}</td>
+                <td style="text-align: right;">${incidence[i].toFixed(0)}</td>
+            </tr>
+        `;    			
     }
-
-
-
+    str += "</table>";
+    return str;
+}
 
 /* Update geojsons data for timeseries plotting
 */
 function update_geojson(date, age_group){
-    
     dt_idx = index["date"][date];
     ag_idx = index["Altersgruppe"][age_group];
     i = dt_idx*strides[0]+ag_idx*strides[2]
@@ -247,7 +267,7 @@ function update_geojson(date, age_group){
 function triggerTransition(){
     update_geojson(date,age_group);
     d3.select("#date").html(formatDate(date*1000));
-
+  
     let test = d3.select("svg")
         .selectAll("path")
         .attr("fill", d => {
@@ -296,6 +316,16 @@ Promise.all([
     // Plotting setup
     geojson = data[0];
     setup_svgmap();
+    document.getElementById("loader").style.display = "none";
 });
+
+window.addEventListener("resize", function(){
+    let width_container = document.getElementById("map__container").clientWidth;
+    let height_container = document.getElementById("map__container").clientHeight;
+    d3.select("svg")
+        .attr("width",width_container)
+        .attr("height",(d) => height_container);
+});
+
 </script>
 </html>
