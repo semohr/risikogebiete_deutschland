@@ -12,14 +12,16 @@ import numpy as np
 
 """ # Load data
 """
-
 # Load data with cov19npis module
 rki = cov19.data_retrieval.RKI()
 rki.download_all_available_data(force_download=True)
 
 
 # Load population data
-population = pd.read_csv("../data/population_rki_age_groups.csv", encoding="cp1252",)
+population = pd.read_csv(
+    "../data/population_rki_age_groups.csv",
+    encoding="cp1252",
+)
 population["ags"] = population["ags"].dropna().astype(int)
 
 # FORMAT BS Should not be neccesary anymore:
@@ -49,11 +51,23 @@ pop_rki_aligned["unbekannt"] = pop_rki_aligned.sum(axis=1) * 0.01  # 1% not know
 
 # New cases with rolling 7 day sum:
 data_rki = rki.data
-date = rki.data["date"].max()
+
 index = pd.date_range(rki.data["date"].min(), rki.data["date"].max())
 
-data_rki = data_rki.set_index(["IdLandkreis", "Altersgruppe", "date",])
-data_rki = data_rki.groupby(["IdLandkreis", "Altersgruppe", "date",]).sum()["confirmed"]
+data_rki = data_rki.set_index(
+    [
+        "IdLandkreis",
+        "Altersgruppe",
+        "date",
+    ]
+)
+data_rki = data_rki.groupby(
+    [
+        "IdLandkreis",
+        "Altersgruppe",
+        "date",
+    ]
+).sum()["confirmed"]
 data_rki = data_rki.groupby(level=[0, 1]).apply(
     lambda x: x.reset_index(level=[0, 1], drop=True).reindex(index)
 )
@@ -63,6 +77,7 @@ data_rki = data_rki.fillna(0)
 cases_7_day_sum = data_rki.rolling(7).sum()
 
 # We want to store the LAST number of weekly new cases
+date = rki.data["date"].max()
 data_cases = cases_7_day_sum.xs(date, level="date")
 
 

@@ -65,10 +65,9 @@
 
 <div id="legend" style="width max-content;">
     <div class="accordion active">
-      <h5>Fälle/100.000 EW</h5> 
+      <h5>Fälle/100.000 EW<br>in der jeweiligen<br>Altersgruppe</h5> 
     </div>
-    <div class="accordion active">
-      <h5>in der jeweiligen Altersgruppe</h5> 
+    <div id="legend-items" class="grid-container">
     </div>
 </div>
 
@@ -79,23 +78,14 @@
  *  Global variables
  * ------------------------------------------------------------ */
 // Colormap
-var classes = [25,50,100,200,500,1000,2000]
-var colors = ['#15b01a', '#f0f921', '#fdb42f', '#ed7953', '#cb4679', '#9c179e', '#5c01a6', "#0d0887"];
+var classes = [25,50,100,200,500,1000,2000,3000]
+var colors = ['#15b01a', '#f0f921', '#fdb42f', '#ed7953', '#cb4679', '#9c179e', '#5c01a6',"#0d0887"];
 var color = d3.scaleLinear()
     .domain(classes)
     .range(colors);
 
-var legend = d3.select("#legend")
-for (let i=0;i<classes.length;i++){
-    if (i == 0) {text = " < " + classes[i];}
-    else { 
-            if (i == (classes.length-1)) text = " "+classes[i]+" >";
-            else text = " "+classes[i]+" < "+classes[i+1];
-        }
-    div = legend.append("div");
-    div.append("div").attr("class","color-box").style("background-color",colors[i]);
-    div.append("span").text(text);
-}
+// Add colorbar and annotations to legend
+add_colorbar_and_annotations("legend-items", colors, classes);
 
 // Data
 var svg, strides, incidence, weekly_cases, index, geojson, date, dt_idx, path;
@@ -177,6 +167,7 @@ function setup_svgmap(){
     const handleZoom = (e) => map.attr('transform', e.transform);
     const zoom = d3.zoom().on('zoom', handleZoom);
     d3.select('svg').call(zoom);
+
 }
 
 function mouseoverHandler(d){

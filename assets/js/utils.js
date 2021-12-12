@@ -51,29 +51,31 @@ const pSBC=(p,c0,c1,l)=>{
 
 
 /*
-Adds legend to svg element using a rectangle
-and gradient.
+Adds colorbar to an html element by id
 
 Parameters
 ----------
-svg: d3.svg object
-colors: An array containing offset and corresponding color
-for the legend, e.g.
-colors = [
-    {offset: "0%", color: "#2c7bb6"},
-    {offset: "50%", color: "#ffff8c"},
-    {offset: "100%", color: "#d7191c"}
-]
-
+parent_id : string
+    Id of the dom elements to add the colorbar to. 
+    Creates a div with id "color-bar" inside parent
+colors : array of strings
+    Colors to use for the colorbar
+classes : array of ints
+    Classes to use as colormap annotations
 */
-function add_legend_gradient(group,width,height,pos,colors,annotations){
+function add_colorbar_and_annotations(parent_id,colors,classes){
     //Append a defs (for definition) element to svg
-    var defs = group.append("defs");
+    var cb = d3.select("#"+parent_id)
+        .append("div")
+        .attr("id","color-bar")
+        .append("svg")
+        .style("display", "block")
+        .attr("width", 15+5)
+        .attr("height", 20*(colors.length));
 
     //Append a linearGradient element to the defs and give it a unique id
-    var linearGradient = defs.append("linearGradient")
+    var linearGradient = cb.append("linearGradient")
         .attr("id", "linear-gradient");
-
     //Vertical gradient
     linearGradient
         .attr("x1", "0%")
@@ -86,68 +88,56 @@ function add_legend_gradient(group,width,height,pos,colors,annotations){
         .data(colors)
         .enter()
         .append("stop")
-        .attr("offset",(d,i)=>d.offset)
-        .attr("stop-color",d=>{return d.color});
+        .attr("offset",(d,i)=>{
+            return i/colors.length*100  + 1/colors.length*50+"%";
+        })
+        .attr("stop-color",d=>{return d});
 
     //Draw the rectangle and fill with gradient
-    group.append("rect")
-        .attr("x", pos[0])
-        .attr("y", pos[1])
-        .attr("width", width)
-        .attr("height", height)
+    cb.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 15)
+        .attr("height", "100%")
         .style("fill", "url(#linear-gradient)")
-        .on("mousemove", function(d) {
-            // Possible to add a legend handler here
-            //console.log((d.clientY-pos[1])/height);
-        }.bind(pos[1]).bind(height));
+        .on("mousemove", mouseover_legend);
 
-    annotations = [
-        {pos: "0%", label: "0%"},
-        {pos: "50%", label: "50%"},
-        {pos: "100%", label: "100%"}
-    ];
-    _add_legend_annotations(group,width,height,pos,annotations);
+    // Add annotation lines
+    console.log(classes);
+    cb.selectAll("line")
+        .data(classes)
+        .enter()
+        .append("line")
+        .attr("stroke-width","1")
+        .style("stroke", "black")
+        // Set alpha to 100%
+        .style("opacity",1)
+        .attr("x1", 0)
+        .attr("x2", 20)
+        .attr("y1", (d,i)=>{
+            return i*20 + 10
+        })
+        .attr("y2", (d,i)=>{
+            return i*20 + 10
+        });
+
+    // Add annotation text
+    let annotations = d3.select("#"+parent_id)
+        .append("div")
+        .attr("id","color-bar-texts")
+        .style("height",20*(colors.length)+"px");
+    annotations.selectAll("div")
+        .data(classes)
+        .enter()
+        .append("div")
+        .attr("class","color-bar-text")
+        .html((d,i)=>{
+            return d
+        });
 }
-/* Helper function to create legend labels
-annotations: An array containing the legend annotations, e.g.
-annotations = [
-    {pos: "0%", label: "0"},
-    {pos: "50%", label: "50"},
-    {pos: "100%", label: "100"}
-]
-*/
-function _add_legend_annotations(group,width,height,pos,annotations){
-    // Get svg
-    const x_pos = pos[0]+width;
-    for (let i = 0; i < annotations.length; i++) {
-        const an = annotations[i];
-        if (an["pos"] == "0%"){
-            var offset = - 2; // shift half stroke width
-        }
-        else if (an["pos"] == "100%") {
-            var offset = 2; // shift half stroke width
-        }
-        else{
-            var offset = 0
-        }
-        const y_pos = pos[1]+height*(1-parseFloat(an["pos"])/100) + offset;
-        
-        group.append("line")
-            .style("stroke","black")
-            .style("stroke-width", "4px")
-            .attr("x1", x_pos-10)
-            .attr("y1", y_pos)
-            .attr("x2", x_pos + width/2)
-            .attr("y2", y_pos).lower();
-        group.append("text")
-            .style("font-size","20px")
-            .attr("class","label")
-            .attr("x", x_pos + width/2+4)
-            .attr("y", y_pos + 10 - 3 ) //shift half font size and half stroke
-            .text(an["label"]);    
-    }
 
-
+function mouseover_legend(d,i){
+    //console.log(d.clientY - d3.select("#color-bar").node().getBoundingClientRect().top);
 }
 
 function getAllIndexes(arr, val) {
@@ -185,24 +175,42 @@ var oneDay = 60 * 60 * 24 * 1000;
 // ---------------------------------------
 // Circle with population density as size transitions
 // ---------------------------------------
+
+// Transition to circles as shape of regions
 function circles_svg(){
     // Transition paths to other shape
     var paths = d3.select("svg").selectAll("path");
     paths.transition()
-        .duration(3000)
+        .delay(function(d,i){
+            // Delay by position of circle
+            // From top to bottom
+            let centroid = path.centroid(d);
+            let y = centroid[1];
+            return (y-100)*3;
+        })
+        .duration(1000)
         .ease(d3.easeSinInOut)
         .attr('d', circlePath);
 }
 
-function _points_circle(center,radius,num_points){
-    var points = [];
-    for (var i = 0; i < num_points; i++) {
-        var angle = i * 2 * Math.PI / num_points;
-        points.push([center[0] + radius * Math.cos(angle),center[1] + radius * Math.sin(angle)]);
-    }
-    return points;
+// Transition to "normal" shape of regions
+function map_svg(){
+    // Transition paths to other shape
+    var paths = d3.select("svg").selectAll("path");
+    paths.transition()
+        .delay(function(d,i){
+            // Delay by position of circle
+            // From top to bottom
+            let centroid = path.centroid(d);
+            let y = centroid[1];
+            return (svg.node().getBBox().height-y-100)*3;
+        })
+        .duration(1000)
+        .ease(d3.easeSinInOut)
+        .attr('d', path);
 }
- 
+
+// Computes the circle svg path give a previous path
 function circlePath(d,i){
     var n_points = this.pathSegList.length;
     var center = path.centroid(d);
@@ -217,8 +225,40 @@ function circlePath(d,i){
     return str
 }
 
-function circlePathInterpolator(d,i){
-    var previous_path = d3.select(this).attr('d');
-    var str = circlePath(d,i);
-    return d3.interpolatePath(previous_path,str);
+// Returns a list of points on a circle
+function _points_circle(center,radius,num_points){
+    var points = [];
+    for (var i = 0; i < num_points; i++) {
+        var angle = i * 2 * Math.PI / num_points;
+        points.push([center[0] + radius * Math.cos(angle),center[1] + radius * Math.sin(angle)]);
+    }
+    return points;
 }
+ 
+  /*--------------------------------------------------------------
+  # Accordion
+  # taken from my website at semohr.github.io
+  --------------------------------------------------------------*/
+document.addEventListener('DOMContentLoaded', function() {
+    var acc = document.getElementsByClassName("accordion");
+    var i;
+
+    for (i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+            /* Toggle between adding and removing the "active" class,
+            to highlight the button that controls the panel */
+            this.classList.toggle("active");
+
+            /* Toggle between hiding and showing the active panel 
+                // save old display style
+            */
+            var panel = this.nextElementSibling;
+            if (panel.style.display !== "none") {
+                panel.style.display = "none";
+            }
+            else {
+                panel.style.display = "";
+            }
+        });
+    }
+});
