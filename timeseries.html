@@ -39,7 +39,7 @@
 <!-- Slider for iterating days-->
 
 <div id="inputs" style="width: max-content;">
-    <div class="accordion active">
+    <div class="accordion active" collapsed-header="Selektion">
       <h5>Altersgruppen</h5> <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
     </div>
     <div class="panel">
@@ -60,7 +60,7 @@
 </div>
 
 <div id="legend" style="width max-content;">
-    <div class="accordion active">
+    <div class="accordion active" collapsed-header="Legend">
       <h5>Fälle/100.000 EW<br>in der jeweiligen<br>Altersgruppe</h5> <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
     </div>
     <div id="legend-items" class="grid-container panel">
@@ -162,7 +162,9 @@ function setup_svgmap(){
     // Set zoom handler
     const handleZoom = (e) => map.attr('transform', e.transform);
     const zoom = d3.zoom().on('zoom', handleZoom);
-    zoom.scaleExtent([0.5, 8]).extent([[0, 0], [width, height]]);
+    zoom
+        .scaleExtent([0.5, 8])
+        .extent([[0, 0], [width, height]]);
     d3.select('svg').call(zoom);
 
 }
@@ -189,14 +191,16 @@ function mouseoutHandler(d){
 function mousemoveHandler(d){
     //console.log(d3.event.pageX,d3.event.pageY)
     r = tooltip.node().getBoundingClientRect();
+    console.log(d3.pointer(d,window));
     tooltip.style("left", (svg.node().getBoundingClientRect().left+d3.pointer(d,window)[0])+"px")
-           .style("top",  (svg.node().getBoundingClientRect().top+d3.pointer(d,window)[1]-r.height)+"px");
+           .style("top",  (Math.max(svg.node().getBoundingClientRect().top+d3.pointer(d,window)[1]-r.height,0))+"px");
 }
 
 function tooltipText(element){
     str = `
-        <h5> ${element.__data__.properties["BEZ"]} ${element.__data__.properties["GEN"]} </h5>
-        <hr>
+        <h5 style="color:#212529"> ${element.__data__.properties["BEZ"]} ${element.__data__.properties["GEN"]} </h5>
+        <span style="display:flex;">${formatDate(date*1000)}</span>
+        <hr style="margin:0">
         <table>
             <tr>
                 <th style="text-align: left; padding-right:10px;">Altersgruppe</th>

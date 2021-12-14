@@ -259,9 +259,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 imges[0].src = "assets/img/plus.png";
             }
             else {
+                
                 imges[0].src = "assets/img/minus.png";
                 panel.style.display = "";
             }
+            let old = this.firstElementChild.innerHTML;
+            this.firstElementChild.innerHTML = this.attributes["collapsed-header"].nodeValue;
+            this.attributes["collapsed-header"].nodeValue = old;
         });
     }
 });
