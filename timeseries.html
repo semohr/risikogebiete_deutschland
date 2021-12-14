@@ -5,8 +5,7 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Risikogebiete Deutschland</title>
-    <meta content="" name="description">
-    <meta content="COVID-19, RISIKO, DEUTSCHLAND" name="keywords">
+    <meta name="description" content="Risikogebiete Deutschland: Deutschland Karte der Covid-19-Inzidenzen, aufgeschlüsselt nach Altersgruppen, Landkreisen, und Datum." />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="expires" content="-1">
@@ -41,33 +40,30 @@
 
 <div id="inputs" style="width: max-content;">
     <div class="accordion active">
-      <h5>Altersgruppen</h5> 
+      <h5>Altersgruppen</h5> <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
     </div>
     <div class="panel">
-      <ul>
-      <li class="radio-inline"><input id="total" type="radio" name="optradio" checked="">Alle</li>
-      <li class="radio-inline"><input id="A00-A04" type="radio" name="optradio"><label for="A00-A04">A00-A04</label></li>
-      <li class="radio-inline"><input id="A05-A14" type="radio" name="optradio"><label for="A05-A14">A05-A14</label></li>
-      <li class="radio-inline"><input id="A15-A34" type="radio" name="optradio"><label for="A15-A34">A15-A34</label></li>
-      <li class="radio-inline"><input id="A35-A59" type="radio" name="optradio"><label for="A35-A59">A35-A59</label></li>
-      <li class="radio-inline"><input id="A60-A79" type="radio" name="optradio"><label for="A60-A79">A60-A79</label></li>
-      <li class="radio-inline"><input id="A80+" type="radio" name="optradio"><label for="A80+">A80+</label></li>
-      </ul>
-    </div>
-    <hr style="margin-top: 0.25em; margin-bottom: 0.25em;">
-    <div class="accordion active">
-      <h5>Datum</h5> 
-    </div>
-    <input type="range" step="86400" style="display: inline-block;" id="slider_days">
-    <span id="date"></span>
+        <ul>
+            <li class="radio-inline"><input id="total" type="radio" name="optradio" checked="">Alle</li>
+            <li class="radio-inline"><input id="A00-A04" type="radio" name="optradio"><label for="A00-A04">A00-A04</label></li>
+            <li class="radio-inline"><input id="A05-A14" type="radio" name="optradio"><label for="A05-A14">A05-A14</label></li>
+            <li class="radio-inline"><input id="A15-A34" type="radio" name="optradio"><label for="A15-A34">A15-A34</label></li>
+            <li class="radio-inline"><input id="A35-A59" type="radio" name="optradio"><label for="A35-A59">A35-A59</label></li>
+            <li class="radio-inline"><input id="A60-A79" type="radio" name="optradio"><label for="A60-A79">A60-A79</label></li>
+            <li class="radio-inline"><input id="A80+" type="radio" name="optradio"><label for="A80+">A80+</label></li>
+        </ul>
+        <hr style="margin-top: 0.25em; margin-bottom: 0.25em;">
+        <h5>Datum</h5> 
+        <input type="range" step="86400" style="display: inline-block;" id="slider_days">
+        <div id="date"></div>
     </div>
 </div>
 
 <div id="legend" style="width max-content;">
     <div class="accordion active">
-      <h5>Fälle/100.000 EW<br>in der jeweiligen<br>Altersgruppe</h5> 
+      <h5>Fälle/100.000 EW<br>in der jeweiligen<br>Altersgruppe</h5> <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
     </div>
-    <div id="legend-items" class="grid-container">
+    <div id="legend-items" class="grid-container panel">
     </div>
 </div>
 
@@ -166,6 +162,7 @@ function setup_svgmap(){
     // Set zoom handler
     const handleZoom = (e) => map.attr('transform', e.transform);
     const zoom = d3.zoom().on('zoom', handleZoom);
+    zoom.scaleExtent([0.5, 8]).extent([[0, 0], [width, height]]);
     d3.select('svg').call(zoom);
 
 }

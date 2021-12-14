@@ -253,10 +253,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // save old display style
             */
             var panel = this.nextElementSibling;
+            var imges = this.getElementsByClassName("pm");
             if (panel.style.display !== "none") {
-                panel.style.display = "none";
+                panel.style.display = "none";    
+                imges[0].src = "assets/img/plus.png";
             }
             else {
+                imges[0].src = "assets/img/minus.png";
                 panel.style.display = "";
             }
         });
