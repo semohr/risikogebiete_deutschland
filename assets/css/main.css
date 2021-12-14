@@ -19,6 +19,7 @@ h5{
 	margin-bottom: 3px;
 	margin-top: 3px;
 	padding:0;
+    color: #7762b5;
 }
 
 input {
@@ -32,6 +33,23 @@ input {
 	position: fixed;
 	display: grid;
 	top: 10px;
+	left: 10px;
+	padding: 5px;
+	background-color: rgba(0,0,0,0.1);
+	border-radius: 5px;
+}
+
+.color-box {
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+    background-color: #ccc;
+}
+
+#legend{
+	position: fixed;
+	display: grid;
+	bottom: 10px;
 	left: 10px;
 	padding: 5px;
 	background-color: rgba(0,0,0,0.1);
@@ -159,3 +177,20 @@ ul > li
 
 }
 
+.grid-container {
+  display: grid;
+  grid-template-columns: min-content min-content;
+  grid-gap: 0px 10px;
+  padding: 10px;
+}
+#color-bar-texts{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 1.5px;
+}
+#color-bar-texts div{
+    text-align: right;
+    white-space:nowrap;
+}

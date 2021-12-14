@@ -1,19 +1,19 @@
 # This is a basic workflow to help you get started with Actions
-
 name: automatic-update
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
   schedule:
-    - cron: "0 */4 * * *" #runs at 00:00 UTC everyday
-      
+    - cron: "0 */4 * * *" #runs at 04:00 UTC everyday
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  update_data:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    # Same for every task/step 
     defaults:
         run:
             working-directory: ./assets/python
@@ -29,8 +29,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       # Another job called     
-      - name: Run update on rki data
+      - name: Run update on rki data (legacy)
         run: python update_data.py
+      - name: Run update on rki data
+        run: python timeseries_data.py
       - name: Add & Commit
         uses: EndBug/add-and-commit@v5
         with:
