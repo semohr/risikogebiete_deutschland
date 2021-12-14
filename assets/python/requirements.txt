@@ -3,3 +3,4 @@ ujson
 requests
 numpy
 pandas
+h5py
