@@ -97,16 +97,8 @@ var age_groups = ["A00-A04","A05-A14","A15-A34","A35-A59","A60-A79","A80+"];
 // Setup tooltip div
 var tooltip = d3.select("#map__container")
     .append("div")
-    .style("position", "absolute")
     .style("visibility", "hidden")
-    .style("background-color", "white")
-    .style("border", "solid")
-    .style("border-width", "1px")
-    .style("border-radius", "5px")
-    .style("padding", "10px")
-    .style("pointer-events", "none")
-    .style("background-color", "rgba(200,200,200,0.8)")
-    .style("font-size", "10px")
+    .attr("class", "data_tooltip")
     .html("");
 
 /* Draw the map to an div container with id "map__container"
@@ -204,7 +196,7 @@ function mousemoveHandler(d){
 
 function tooltipText(element){
     str = `
-        <h5 style="color:#212529"> ${element.__data__.properties["BEZ"]} ${element.__data__.properties["GEN"]} </h5>
+        <h5> ${element.__data__.properties["BEZ"]} ${element.__data__.properties["GEN"]} </h5>
         <span style="display:flex;">${formatDate(date*1000)}</span>
         <hr style="margin:0">
         <table>
