@@ -4,10 +4,10 @@
 * @Last Modified by:   Sebastian Mohr
 * @Last Modified time: 2021-11-05 20:55:27
 */
-
-body {
+html, body {
 	font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, sans-serif;
 	font-size: 12px;
+    overflow: hidden;
 }
 
 

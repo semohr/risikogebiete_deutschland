@@ -86,7 +86,10 @@ var color = d3.scaleLinear()
     .range(colors);
 
 // Add colorbar and annotations to legend
-add_colorbar_and_annotations("legend-items", colors, classes);
+window.addEventListener("DOMContentLoaded", function() {
+    add_colorbar_and_annotations("legend-items", colors, classes);
+
+});
 
 // Data
 var svg, strides, incidence, weekly_cases, index, geojson, date, dt_idx, path;
