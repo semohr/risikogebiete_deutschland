@@ -37,7 +37,6 @@
 <div id="map__container" style="width: 100%; height:100vh; margin: auto;" align="center"></div>
 
 <!-- Slider for iterating days-->
-
 <div id="inputs" style="width: max-content;">
     <div class="accordion active" collapsed-header="Selektion">
       <h5>Altersgruppen</h5> <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
@@ -329,6 +328,9 @@ Promise.all([
     geojson = data[0];
     setup_svgmap();
     document.getElementById("loader").style.display = "none";
+
+    //Get active age group
+    document.querySelectorAll("input[type='radio']:checked")[0].click();
 });
 
 window.addEventListener("resize", function(){
