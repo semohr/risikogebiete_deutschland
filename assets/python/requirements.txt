@@ -1,5 +1,6 @@
 git+https://github.com/Priesemann-Group/covid19_inference.git
 ujson
 requests
-numpy
+numpy==1.20.3
 pandas
+h5py

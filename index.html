@@ -37,7 +37,6 @@
 <div id="map__container" style="width: 100%; height:100vh; margin: auto;" align="center"></div>
 
 <!-- Slider for iterating days-->
-
 <div id="inputs" style="width: max-content;">
     <div class="accordion active" collapsed-header="Selektion">
       <h5>Altersgruppen</h5> <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
@@ -86,7 +85,10 @@ var color = d3.scaleLinear()
     .range(colors);
 
 // Add colorbar and annotations to legend
-add_colorbar_and_annotations("legend-items", colors, classes);
+window.addEventListener("DOMContentLoaded", function() {
+    add_colorbar_and_annotations("legend-items", colors, classes);
+
+});
 
 // Data
 var svg, strides, incidence, weekly_cases, index, geojson, date, dt_idx, path;
@@ -97,16 +99,8 @@ var age_groups = ["A00-A04","A05-A14","A15-A34","A35-A59","A60-A79","A80+"];
 // Setup tooltip div
 var tooltip = d3.select("#map__container")
     .append("div")
-    .style("position", "absolute")
     .style("visibility", "hidden")
-    .style("background-color", "white")
-    .style("border", "solid")
-    .style("border-width", "1px")
-    .style("border-radius", "5px")
-    .style("padding", "10px")
-    .style("pointer-events", "none")
-    .style("background-color", "rgba(200,200,200,0.8)")
-    .style("font-size", "10px")
+    .attr("class", "data_tooltip")
     .html("");
 
 /* Draw the map to an div container with id "map__container"
@@ -204,7 +198,7 @@ function mousemoveHandler(d){
 
 function tooltipText(element){
     str = `
-        <h5 style="color:#212529"> ${element.__data__.properties["BEZ"]} ${element.__data__.properties["GEN"]} </h5>
+        <h5> ${element.__data__.properties["BEZ"]} ${element.__data__.properties["GEN"]} </h5>
         <span style="display:flex;">${formatDate(date*1000)}</span>
         <hr style="margin:0">
         <table>
@@ -334,6 +328,9 @@ Promise.all([
     geojson = data[0];
     setup_svgmap();
     document.getElementById("loader").style.display = "none";
+
+    //Get active age group
+    document.querySelectorAll("input[type='radio']:checked")[0].click();
 });
 
 window.addEventListener("resize", function(){

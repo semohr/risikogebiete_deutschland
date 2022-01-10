@@ -4,10 +4,10 @@
 * @Last Modified by:   Sebastian Mohr
 * @Last Modified time: 2021-11-05 20:55:27
 */
-
-body {
+html, body {
 	font-family: "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, sans-serif;
 	font-size: 12px;
+    overflow: hidden;
 }
 
 
@@ -64,6 +64,23 @@ td:first-child, th:first-child {
 }
 tr:last-child {
  border-bottom: none;
+}
+
+.data_tooltip {
+    color: #212529;
+    position: absolute;
+    background-color: white;
+    border: solid;
+    border-width: 1px;
+    border-radius: 5px;
+    padding: 10px;
+    pointer-events: none;
+    background-color: rgba(200,200,200,0.8);
+    font-size: 10px;
+}
+
+.data_tooltip h5{
+    color: #212529;
 }
 
 /*--------------------------------------------------------------
