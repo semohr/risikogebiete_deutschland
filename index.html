@@ -51,7 +51,10 @@
             <li class="radio-inline"><input id="A60-A79" type="radio" name="optradio"><label for="A60-A79">A60-A79</label></li>
             <li class="radio-inline"><input id="A80+" type="radio" name="optradio"><label for="A80+">A80+</label></li>
         </ul>
-        <input type="checkbox" id="change_color" style="border-radius: 0px;"><label for="change_color">Alte Farben</label>
+        <ul>
+            <li><input type="checkbox" id="change_color" style="border-radius: 0px;"><label for="change_color">Alte Farben</label></li>
+            <li><input type="checkbox" id="change_circles" style="border-radius: 0px;"><label for="change_circles">Experimental</label></li>
+        </ul>
         <hr style="margin-top: 0.25em; margin-bottom: 0.25em;">
         <h5>Datum</h5> 
         <input type="range" step="86400" style="display: inline-block;" id="slider_days">
@@ -62,7 +65,7 @@
     </div>
 </div>
 
-<div id="legend" style="width max-content;">
+<div id="legend" style="width: max-content;">
     <div class="accordion active" collapsed-header="Legende">
       <h5>Fälle/100.000 EW<br>in der jeweiligen<br>Altersgruppe</h5> <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
     </div>
@@ -91,7 +94,7 @@ window.addEventListener("DOMContentLoaded", function() {
 });
 
 // Data
-var svg, strides, incidence, weekly_cases, index, geojson, date, dt_idx, path;
+var svg, strides, incidence, weekly_cases, index, geojson, date, dt_idx, path, map;
 var age_group = "total";
 var formatDate = d3.timeFormat("%d.%m.%g");
 var age_groups = ["A00-A04","A05-A14","A15-A34","A35-A59","A60-A79","A80+"];
@@ -127,7 +130,7 @@ function setup_svgmap(){
     path = d3.geoPath(projection);
 
     // Draw the map as svg
-    let map = svg.append("g")
+    map = svg.append("g");
     map.selectAll("path")
         .data(geojson.features)
         .enter()
@@ -160,7 +163,7 @@ function setup_svgmap(){
 
     // Set zoom handler
     const handleZoom = (e) => map.attr('transform', e.transform);
-    const zoom = d3.zoom().on('zoom', handleZoom);
+    zoom = d3.zoom().on('zoom', handleZoom);
     zoom
         .scaleExtent([0.5, 8])
         .extent([[0, 0], [width, height]]);
@@ -169,6 +172,7 @@ function setup_svgmap(){
 
     // Change color to selected box
     onclick_color_change();
+    onclick_experimental_circles();
 }
 
 function mouseoverHandler(d){
@@ -245,15 +249,26 @@ function update_geojson(date, age_group){
     });
 }
 
+var experimental_circles = false;
 function triggerTransition(){
     update_geojson(date,age_group);
     d3.select("#date").html(formatDate(date*1000));
-  
-    let test = d3.select("svg")
+    
+    if (!experimental_circles){
+        d3.select("svg")
         .selectAll("path")
         .attr("fill", d => {
             return color(d.properties.index_data)
         });
+    }
+    else {
+        d3.select("svg")
+        .selectAll("circle")
+        .attr('r', (d)=>{return Math.sqrt(d.properties.index_data)})
+        .attr("fill", d => {
+            return color(d.properties.index_data)
+        });
+    }
 }    
 
 //Add event to slider
@@ -289,8 +304,21 @@ function onclick_color_change(){
     }
 }
 
+function onclick_experimental_circles(){
+    var input = document.getElementById("change_circles");
+    if (!input.checked){
+        map_svg()
+    }
+    else{
+        circles_svg()
+    }    
+}
+
+
 //Add event to recolor
-document.getElementById("change_color").addEventListener("click",onclick_color_change)
+document.getElementById("change_color").addEventListener("click",onclick_color_change);
+//Add event for experimental circles
+document.getElementById("change_circles").addEventListener("click",onclick_experimental_circles);
 
 // Load geojson file and fetch timeseries
 Promise.all([

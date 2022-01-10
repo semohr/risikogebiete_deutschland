@@ -179,8 +179,35 @@ var oneDay = 60 * 60 * 24 * 1000;
 // Transition to circles as shape of regions
 function circles_svg(){
     // Transition paths to other shape
+    var n = 0;
     var paths = d3.select("svg").selectAll("path");
-    paths.transition()
+
+    var path_to_circles = () => {
+        map = d3.select("svg").select("g");
+        map.selectAll("circle")
+        .data(geojson.features)
+        .enter().append("circle")
+        .attr("r", (d)=>{return Math.sqrt(d.properties.index_data)})
+        .attr("cx", (d)=>{return path.centroid(d)[0]})
+        .attr("cy", (d)=>{return path.centroid(d)[1]})
+        .attr("fill", d => {
+            return color(d.properties.index_data)
+        })
+        .attr("stroke", "gray")
+        .attr("stroke-width","0.8")
+        .on("mouseover",mouseoverHandler)
+        .on("mouseout",mouseoutHandler)
+        .on("mousemove",mousemoveHandler);
+
+        // Delete paths from svg
+        paths.remove();
+    };
+
+    // Transition to circles (paths are inefficent)
+    paths.each(()=>{
+            n++;
+        })
+        .transition()
         .delay(function(d,i){
             // Delay by position of circle
             // From top to bottom
@@ -190,12 +217,40 @@ function circles_svg(){
         })
         .duration(1000)
         .ease(d3.easeSinInOut)
-        .attr('d', circlePath);
+        .attr('d', circlePath)
+        .on('end', function() { // use to be .each('end', function(){})
+            n--;
+            if (!n) {
+                path_to_circles();
+            }
+        });
+
+    experimental_circles = true;
 }
 
 // Transition to "normal" shape of regions
 function map_svg(){
-    // Transition paths to other shape
+    if (!experimental_circles){return}
+    map = d3.select("svg").select("g");
+    map.selectAll("path")
+        .data(geojson.features)
+        .enter().append("path")
+        .attr("d", path)
+        .attr("d", circlePath)
+        .attr("fill", d => {
+            return color(d.properties.index_data)
+        })
+        .attr("stroke", "gray")
+        .attr("stroke-width","0.8")
+        .on("mouseover",mouseoverHandler)
+        .on("mouseout",mouseoutHandler)
+        .on("mousemove",mousemoveHandler);
+
+    //Delete circles
+    d3.select("svg").selectAll("circle").remove();
+
+
+    // Transition circlepaths to other path of region
     var paths = d3.select("svg").selectAll("path");
     paths.transition()
         .delay(function(d,i){
@@ -208,13 +263,26 @@ function map_svg(){
         .duration(1000)
         .ease(d3.easeSinInOut)
         .attr('d', path);
+        
+    experimental_circles = false;
 }
 
 // Computes the circle svg path give a previous path
+var limits = {
+    "total":3669491,
+    "A00-A04":193234,
+    "A05-A14":326311,
+    "A15-A34":964109,
+    "A35-A59":1276145,
+    "A60-A79":698465,
+    "A80+":211227,
+}
 function circlePath(d,i){
+    
     var n_points = this.pathSegList.length;
     var center = path.centroid(d);
-    var r = 5;
+
+    var r = Math.sqrt(d.properties.index_data);
     var points = _points_circle(center,r,n_points+1);
     //convert to string
     let str = "M" + points[0][0] + "," + points[0][1];
@@ -269,3 +337,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
+function endAll (transition, callback) {
+    var n;
+
+    if (transition.empty()) {
+        callback();
+    }
+    else {
+        n = transition.size();
+        transition.each("end", function () {
+            n--;
+            if (n === 0) {
+                callback();
+            }
+        });
+    }
+}
