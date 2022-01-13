@@ -180,10 +180,9 @@ var oneDay = 60 * 60 * 24 * 1000;
 function circles_svg(){
     // Transition paths to other shape
     var n = 0;
-    var paths = d3.select("svg").selectAll("path");
+    var paths = map.selectAll("path");
 
     var path_to_circles = () => {
-        map = d3.select("svg").select("g");
         map.selectAll("circle")
         .data(geojson.features)
         .enter().append("circle")
@@ -224,14 +223,13 @@ function circles_svg(){
                 path_to_circles();
             }
         });
-
-    experimental_circles = true;
 }
 
 // Transition to "normal" shape of regions
 function map_svg(){
+    
     if (!experimental_circles){return}
-    map = d3.select("svg").select("g");
+
     map.selectAll("path")
         .data(geojson.features)
         .enter().append("path")
@@ -247,11 +245,11 @@ function map_svg(){
         .on("mousemove",mousemoveHandler);
 
     //Delete circles
-    d3.select("svg").selectAll("circle").remove();
+    map.selectAll("circle").remove();
 
 
     // Transition circlepaths to other path of region
-    var paths = d3.select("svg").selectAll("path");
+    var paths = map.selectAll("path");
     paths.transition()
         .delay(function(d,i){
             // Delay by position of circle
@@ -263,8 +261,6 @@ function map_svg(){
         .duration(1000)
         .ease(d3.easeSinInOut)
         .attr('d', path);
-        
-    experimental_circles = false;
 }
 
 // Computes the circle svg path give a previous path

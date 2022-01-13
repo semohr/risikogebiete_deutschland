@@ -53,7 +53,8 @@
         </ul>
         <ul>
             <li><input type="checkbox" id="change_color" style="border-radius: 0px;"><label for="change_color">Alte Farben</label></li>
-            <li><input type="checkbox" id="change_circles" style="border-radius: 0px;"><label for="change_circles">Experimental</label></li>
+            <li><input type="checkbox" id="change_circles" style="border-radius: 0px;"><label for="change_circles">Experimental Circles</label></li>
+            <li><input type="checkbox" id="change_density" style="border-radius: 0px;"><label for="change_density">Experimental Density</label></li>
         </ul>
         <hr style="margin-top: 0.25em; margin-bottom: 0.25em;">
         <h5>Datum</h5> 
@@ -130,7 +131,7 @@ function setup_svgmap(){
     path = d3.geoPath(projection);
 
     // Draw the map as svg
-    map = svg.append("g");
+    map = svg.append("g").attr("id","regions");
     map.selectAll("path")
         .data(geojson.features)
         .enter()
@@ -173,6 +174,7 @@ function setup_svgmap(){
     // Change color to selected box
     onclick_color_change();
     onclick_experimental_circles();
+    onclick_density();
 }
 
 function mouseoverHandler(d){
@@ -250,20 +252,22 @@ function update_geojson(date, age_group){
 }
 
 var experimental_circles = false;
+var experimental_density = false;
 function triggerTransition(){
     update_geojson(date,age_group);
     d3.select("#date").html(formatDate(date*1000));
     
     if (!experimental_circles){
-        d3.select("svg")
-        .selectAll("path")
+        map.selectAll("path")
         .attr("fill", d => {
             return color(d.properties.index_data)
         });
     }
-    else {
-        d3.select("svg")
-        .selectAll("circle")
+    if (experimental_density){
+        update_density();
+    }
+    if (experimental_circles){
+        map.selectAll("circle")
         .attr('r', (d)=>{return Math.sqrt(d.properties.index_data)})
         .attr("fill", d => {
             return color(d.properties.index_data)
@@ -297,7 +301,7 @@ function change_color(co,cl){
 function onclick_color_change(){
     var input = document.getElementById("change_color");
     if (input.checked){
-        change_color(old_colors,classes)
+        change_color(old_colors,classes);
     }
     else{
         change_color(colors,classes)
@@ -308,17 +312,106 @@ function onclick_experimental_circles(){
     var input = document.getElementById("change_circles");
     if (!input.checked){
         map_svg()
+        experimental_circles = false;
     }
     else{
-        circles_svg()
+        circles_svg();
+        experimental_circles = true;
     }    
 }
+
+function onclick_density(){
+    var input = document.getElementById("change_density");
+    if (input.checked){
+        setup_density();
+        experimental_density = true;
+    }
+    else{
+        delete_density();
+        experimental_density = false;
+    }
+}
+
+
+// Add Y axis
+var height, width, yScaleContour, xScaleContour, contour;
+
+function update_density(){
+    
+    var n = 0;
+    var max = 0;
+    d3.select("#density_layer")
+        .selectAll("path")
+        .data(contour(geojson.features))
+        .join("path")
+            .each((d)=>{
+                n +=d.value
+                max = Math.max(max,d.value)
+            })
+            .attr("stroke-width", (d, i) => {
+                return d.value/max*3;
+            })
+            .attr("d", d3.geoPath());
+}
+
+function setup_density(){
+    height = window.innerHeight;
+    width = window.innerWidth;
+    yScaleContour = d3.scaleLinear()
+        .domain([0, height])
+        .range([ 0, height ]);
+    xScaleContour = d3.scaleLinear()
+        .domain([0, width])
+        .range([ 0, width ]);
+
+    contour = d3.contourDensity()
+        .x(d => xScaleContour(path.centroid(d)[0]))
+        .y(d => yScaleContour(path.centroid(d)[1]))
+        .weight(d => {
+            var scale = d3.scaleLinear()
+                    .domain(classes)
+                    .range([0,10,20,40,80,160,320,640]);
+                return scale(d.properties.index_data);
+            })
+        .size([width, height]);
+
+
+    d3.select("svg").append("g")
+            .attr("id","density_layer")
+            .attr("fill", "none")
+            .attr("stroke", "#0d6efd")
+            .attr("stroke-linejoin", "round")
+        .selectAll("path")
+        .data(contour(geojson.features))
+        .join("path")
+            .attr("d", d3.geoPath());
+
+    const handleZoom = (e) => {
+        d3.select("#density_layer").attr('transform', e.transform);
+        map.attr('transform', e.transform);
+    }
+    // Set zoom handler
+    zoom = d3.zoom().on('zoom', handleZoom);
+    zoom
+        .scaleExtent([0.5, 8])
+        .extent([[0, 0], [width, height]]);
+    d3.select('svg').call(zoom);
+}
+
+function delete_density(){
+    d3.select("#density_layer").remove();
+}
+
+
 
 
 //Add event to recolor
 document.getElementById("change_color").addEventListener("click",onclick_color_change);
 //Add event for experimental circles
 document.getElementById("change_circles").addEventListener("click",onclick_experimental_circles);
+
+//Add event to density
+document.getElementById("change_density").addEventListener("click",onclick_density);
 
 // Load geojson file and fetch timeseries
 Promise.all([
