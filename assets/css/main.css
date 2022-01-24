@@ -39,6 +39,47 @@ input {
 	border-radius: 5px;
 }
 
+#districts{
+    position: fixed;
+    display: grid;
+    top: 10px;
+    right: 10px;
+    max-height:calc(100% - 20px);
+    padding: 5px;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 5px;
+    overflow:auto;
+}
+#districts table th {
+    white-space: nowrap;
+}
+#districts table tr td:last-child {
+    text-align:right;
+}
+
+.headerSortDown:after,
+.headerSortUp:after {
+    content: ' ';
+    position: relative;
+    left: 2px;
+    border: 8px solid transparent;
+}
+
+.headerSortDown:after {
+    top: 10px;
+    border-top-color: silver;
+}
+
+.headerSortUp:after {
+    bottom: 15px;
+    border-bottom-color: silver;
+}
+
+.headerSortDown,
+.headerSortUp {
+    padding-right: 10px;
+}
+
 .color-box {
     width: 15px;
     height: 15px;

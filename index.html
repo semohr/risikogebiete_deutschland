@@ -62,11 +62,21 @@
     </div>
 </div>
 
-<div id="legend" style="width max-content;">
+<div id="legend">
     <div class="accordion active" collapsed-header="Legende">
       <h5>Fälle/100.000 EW<br>in der jeweiligen<br>Altersgruppe</h5> <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
     </div>
     <div id="legend-items" class="grid-container panel">
+    </div>
+</div>
+
+<div id="districts">
+    <div class="accordion active" collapsed-header="Landkreise">
+        Landkreise  <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
+    </div>
+    <div id="districts-items" class="grid-container panel">
+        <table id="districts-table">
+        </table>
     </div>
 </div>
 
@@ -244,9 +254,72 @@ function update_geojson(date, age_group){
         el.properties.index_data = linkedData;
     });
 }
+function update_districts(date, age_group) {
+
+    let districtsTable = document.getElementById('districts-table');
+
+    // table sort props to Nick Grealy
+    // https://stackoverflow.com/questions/14267781/sorting-html-table-with-javascript/49041392#49041392
+    const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+
+    const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
+            v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+    const sortByCol = (n, toggleOrder) => {
+        if (typeof toggleOrder != 'undefined' && toggleOrder) {
+            this.asc = !this.asc;
+        }
+        districtsTable.querySelectorAll('tr > th').forEach( (el) => {
+            el.classList.remove('headerSortDown');
+            el.classList.remove('headerSortUp');
+        });
+        districtsTable.querySelectorAll('tr > th')[n].classList.add(  this.asc ? 'headerSortDown' : 'headerSortUp' );
+
+        Array.from(districtsTable.querySelectorAll('tr:nth-child(n+2)'))
+            .sort(comparer(n, !this.asc))
+            .forEach(tr => districtsTable.appendChild(tr));
+        districtsTable.attributes.sortOrder = n;
+    }
+
+    dt_idx = index["date"][date];
+    ag_idx = index["Altersgruppe"][age_group];
+    i = dt_idx*strides[0]+ag_idx*strides[2]
+
+    districtsTable.innerHTML = '';
+
+    let col0 = document.createElement('th');
+    col0.innerHTML = 'Landkreis';
+    col0.addEventListener('click', () => { sortByCol(0, true); });
+
+    let col1 = document.createElement('th');
+    col1.innerHTML = age_group;
+    col1.addEventListener('click', () => { sortByCol(1, true); });
+    let tableHeader = document.createElement('tr');
+    tableHeader.appendChild(col0);
+    tableHeader.appendChild(col1);
+
+    districtsTable.appendChild(tableHeader);
+
+    geojson.features.forEach(el => {
+        const linkedData = incidence[index["IdLandkreis"][parseInt(el.properties.AGS)]*strides[1]+i];
+        let col1 = document.createElement('td');
+        col1.innerHTML = el.properties['GEN'];
+        let col2 = document.createElement('td');
+        col2.innerHTML = Math.round(linkedData);
+        let tableRow = document.createElement('tr');
+        tableRow.appendChild(col1);
+        tableRow.appendChild(col2);
+        districtsTable.appendChild(tableRow);
+    });
+
+    let sortOrder = typeof districtsTable.attributes.sortOrder != 'undefined' ? districtsTable.attributes.sortOrder : 0;
+    sortByCol(sortOrder);
+}
 
 function triggerTransition(){
     update_geojson(date,age_group);
+    update_districts(date,age_group);
     d3.select("#date").html(formatDate(date*1000));
   
     let test = d3.select("svg")
