@@ -50,8 +50,12 @@ input {
     border-radius: 5px;
     overflow:auto;
 }
+#districts-items {
+    margin-top:0;
+}
 #districts table th {
     white-space: nowrap;
+    cursor: pointer;
 }
 #districts table tr td:last-child {
     text-align:right;

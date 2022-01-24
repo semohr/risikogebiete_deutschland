@@ -72,12 +72,11 @@
 
 <div id="districts">
     <div class="accordion active" collapsed-header="Landkreise">
-        Landkreise  <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
+        <h5>Landkreise <span id="lk-date"></span></h5>  <img class="pm" style="height: 1em; margin: auto 3px auto 3px;"src="assets/img/minus.png" alt="">
     </div>
-    <div id="districts-items" class="grid-container panel">
-        <table id="districts-table">
-        </table>
-    </div>
+
+    <table id="districts-table" style="margin:3px">
+    </table>
 </div>
 
 </body>
@@ -293,7 +292,7 @@ function update_districts(date, age_group) {
     col0.addEventListener('click', () => { sortByCol(0, true); });
 
     let col1 = document.createElement('th');
-    col1.innerHTML = age_group;
+    col1.innerHTML = age_group == 'total' ? 'Alle' : age_group;
     col1.addEventListener('click', () => { sortByCol(1, true); });
     let tableHeader = document.createElement('tr');
     tableHeader.appendChild(col0);
@@ -312,6 +311,8 @@ function update_districts(date, age_group) {
         tableRow.appendChild(col2);
         districtsTable.appendChild(tableRow);
     });
+
+    document.getElementById('lk-date').innerHTML = formatDate(date*1000);
 
     let sortOrder = typeof districtsTable.attributes.sortOrder != 'undefined' ? districtsTable.attributes.sortOrder : 0;
     sortByCol(sortOrder);
