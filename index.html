@@ -275,9 +275,10 @@ function update_districts(date, age_group) {
         });
         districtsTable.querySelectorAll('tr > th')[n].classList.add(  this.asc ? 'headerSortDown' : 'headerSortUp' );
 
+        let num = 1;
         Array.from(districtsTable.querySelectorAll('tr:nth-child(n+2)'))
             .sort(comparer(n, !this.asc))
-            .forEach(tr => districtsTable.appendChild(tr));
+            .forEach(tr => { tr.querySelector('td').innerHTML = num++; districtsTable.appendChild(tr) } );
         districtsTable.attributes.sortOrder = n;
     }
 
@@ -288,25 +289,33 @@ function update_districts(date, age_group) {
     districtsTable.innerHTML = '';
 
     let col0 = document.createElement('th');
-    col0.innerHTML = 'Landkreis';
-    col0.addEventListener('click', () => { sortByCol(0, true); });
+    col0.innerHTML = '#';
 
     let col1 = document.createElement('th');
-    col1.innerHTML = age_group == 'total' ? 'Alle' : age_group;
+    col1.innerHTML = 'Landkreis';
     col1.addEventListener('click', () => { sortByCol(1, true); });
+
+    let col2 = document.createElement('th');
+    col2.innerHTML = age_group == 'total' ? 'Alle' : age_group;
+    col2.addEventListener('click', () => { sortByCol(2, true); });
+
     let tableHeader = document.createElement('tr');
+
     tableHeader.appendChild(col0);
     tableHeader.appendChild(col1);
+    tableHeader.appendChild(col2);
 
     districtsTable.appendChild(tableHeader);
 
     geojson.features.forEach(el => {
         const linkedData = incidence[index["IdLandkreis"][parseInt(el.properties.AGS)]*strides[1]+i];
+        let col0 = document.createElement('td');
         let col1 = document.createElement('td');
         col1.innerHTML = el.properties['GEN'];
         let col2 = document.createElement('td');
         col2.innerHTML = Math.round(linkedData);
         let tableRow = document.createElement('tr');
+        tableRow.appendChild(col0);
         tableRow.appendChild(col1);
         tableRow.appendChild(col2);
         districtsTable.appendChild(tableRow);
@@ -314,7 +323,7 @@ function update_districts(date, age_group) {
 
     document.getElementById('lk-date').innerHTML = formatDate(date*1000);
 
-    let sortOrder = typeof districtsTable.attributes.sortOrder != 'undefined' ? districtsTable.attributes.sortOrder : 0;
+    let sortOrder = typeof districtsTable.attributes.sortOrder != 'undefined' ? districtsTable.attributes.sortOrder : 1;
     sortByCol(sortOrder);
 }
 
