@@ -29,7 +29,7 @@ date = rki.data["date"].max()
 index = pd.date_range(rki.data["date"].min(), rki.data["date"].max())
 
 data_rki = data_rki.set_index(["IdLandkreis", "Altersgruppe", "date",])
-data_rki = data_rki.groupby(["IdLandkreis", "Altersgruppe", "date",]).sum()["confirmed"]
+data_rki = data_rki.groupby(["IdLandkreis", "Altersgruppe", "date",])["confirmed"].sum()
 data_rki = data_rki.groupby(level=[0, 1]).apply(
     lambda x: x.reset_index(level=[0, 1], drop=True).reindex(index)
 )
