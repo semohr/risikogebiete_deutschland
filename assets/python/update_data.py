@@ -67,7 +67,7 @@ data_rki = data_rki.groupby(
         "Altersgruppe",
         "date",
     ]
-).sum()["confirmed"]
+)["confirmed"].sum()
 data_rki = data_rki.groupby(level=[0, 1]).apply(
     lambda x: x.reset_index(level=[0, 1], drop=True).reindex(index)
 )
