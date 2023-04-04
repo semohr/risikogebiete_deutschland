@@ -66,11 +66,10 @@ berlin_total["Altersgruppe"] = "total"
 total = cases_7_day_sum.groupby(["date","IdLandkreis"]).sum()
 total = total.reset_index()
 total["Altersgruppe"] = "total"
-total = total.append(berlin_total)
+total = pd.concat([total,berlin_total])
 
 cases = cases_7_day_sum.reset_index()
-cases = cases.append(berlin)
-cases = cases.append(total)
+cases = pd.concat([cases,berlin,total])
 
 for id in berlin_ags:
     cases = cases[cases["IdLandkreis"] != id]
@@ -90,7 +89,7 @@ def map_func(a):
         ags = 2
     # calc incidence per 100000
     return a / pop_rki_aligned.xs(ags, level="ags")[age_group][0]*100000
-data = cases.groupby(["IdLandkreis","Altersgruppe"]).apply(func=map_func) # Apply function onto each row
+data = cases.groupby(["IdLandkreis","Altersgruppe"],group_keys=False).apply(func=map_func) # Apply function onto each row
 
 data = data.rename(columns={"confirmed":"inzidenz"})
 data["weekly_cases"]=cases["confirmed"]
