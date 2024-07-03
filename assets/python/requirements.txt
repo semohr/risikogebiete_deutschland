@@ -1,4 +1,4 @@
-git+https://github.com/Priesemann-Group/covid19_inference.git
+git+https://github.com/jdehning/covid19_data_retrieval.git
 ujson
 requests
 numpy==1.20.3

@@ -7,13 +7,13 @@
 # ------------------------------------------------------------------------------ #
 import ujson
 import pandas as pd
-import covid19_inference as cov19
+import covid19_data_retrieval as cov19
 import numpy as np
 
 """ # Load data
 """
 # Load data with cov19npis module
-rki = cov19.data_retrieval.RKI()
+rki = cov19.RKI()
 rki.download_all_available_data(force_download=True)
 
 

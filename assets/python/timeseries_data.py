@@ -1,17 +1,19 @@
 import pandas as pd
-import covid19_inference as cov19
+import covid19_data_retrieval as cov19
 import numpy as np
 import json
-from datetime import date,timedelta
-
+from datetime import date, timedelta
 
 
 # Load data with covid19inference module
-rki = cov19.data_retrieval.RKI()
+rki = cov19.RKI()
 rki.download_all_available_data()
 
 # Load population data
-population = pd.read_csv("../data/population_rki_age_groups.csv", encoding="cp1252",)
+population = pd.read_csv(
+    "../data/population_rki_age_groups.csv",
+    encoding="cp1252",
+)
 population = population.dropna()
 population["ags"] = population["ags"].astype(int)
 pop_rki_aligned = population.set_index(["ags", "Region", "NUTS3"])
@@ -28,8 +30,20 @@ data_rki = rki.data
 date = rki.data["date"].max()
 index = pd.date_range(rki.data["date"].min(), rki.data["date"].max())
 
-data_rki = data_rki.set_index(["IdLandkreis", "Altersgruppe", "date",])
-data_rki = data_rki.groupby(["IdLandkreis", "Altersgruppe", "date",])["confirmed"].sum()
+data_rki = data_rki.set_index(
+    [
+        "IdLandkreis",
+        "Altersgruppe",
+        "date",
+    ]
+)
+data_rki = data_rki.groupby(
+    [
+        "IdLandkreis",
+        "Altersgruppe",
+        "date",
+    ]
+)["confirmed"].sum()
 data_rki = data_rki.groupby(level=[0, 1]).apply(
     lambda x: x.reset_index(level=[0, 1], drop=True).reindex(index)
 )
@@ -57,19 +71,19 @@ berlin_ags = [
     11011,
     11012,
 ]
-berlin = cases_7_day_sum.loc[berlin_ags,:,:].groupby(["date","Altersgruppe"]).sum()
+berlin = cases_7_day_sum.loc[berlin_ags, :, :].groupby(["date", "Altersgruppe"]).sum()
 berlin = berlin.reset_index()
 berlin["IdLandkreis"] = 11000
-berlin_total = berlin.groupby(["date","IdLandkreis"]).sum().reset_index()
+berlin_total = berlin.groupby(["date", "IdLandkreis"]).sum().reset_index()
 berlin_total["Altersgruppe"] = "total"
 
-total = cases_7_day_sum.groupby(["date","IdLandkreis"]).sum()
+total = cases_7_day_sum.groupby(["date", "IdLandkreis"]).sum()
 total = total.reset_index()
 total["Altersgruppe"] = "total"
-total = pd.concat([total,berlin_total])
+total = pd.concat([total, berlin_total])
 
 cases = cases_7_day_sum.reset_index()
-cases = pd.concat([cases,berlin,total])
+cases = pd.concat([cases, berlin, total])
 
 for id in berlin_ags:
     cases = cases[cases["IdLandkreis"] != id]
@@ -81,6 +95,8 @@ cases = cases.sort_index()
 For efficiency reasons we use apply and groupby here, iterating all rows
 would take forever
 """
+
+
 def map_func(a):
     # Get age group and landkreisid from index
     ags = a.index[0][1]
@@ -88,49 +104,74 @@ def map_func(a):
     if ags == 2000:
         ags = 2
     # calc incidence per 100000
-    return a / pop_rki_aligned.xs(ags, level="ags")[age_group][0]*100000
-data = cases.groupby(["IdLandkreis","Altersgruppe"],group_keys=False).apply(func=map_func) # Apply function onto each row
+    return a / pop_rki_aligned.xs(ags, level="ags")[age_group][0] * 100000
 
-data = data.rename(columns={"confirmed":"inzidenz"})
-data["weekly_cases"]=cases["confirmed"]
+
+data = cases.groupby(["IdLandkreis", "Altersgruppe"], group_keys=False).apply(
+    func=map_func
+)  # Apply function onto each row
+
+data = data.rename(columns={"confirmed": "inzidenz"})
+data["weekly_cases"] = cases["confirmed"]
 data = data.sort_index()
 
 """ Select last 16 weeks
 """
-end =  date.today()
-begin = end-timedelta(days=7*16)
+end = date.today()
+begin = end - timedelta(days=7 * 16)
 
-data = data.loc[begin:end,:,:]
-
+data = data.loc[begin:end, :, :]
 
 
 """ write as compressed hdf5
 """
 import h5py
-data=data.reset_index()
+
+data = data.reset_index()
 data["date"] = data.apply(lambda row: row["date"].timestamp(), axis=1)
 data["IdLandkreis"] = data.apply(lambda row: row["IdLandkreis"], axis=1)
 data["weekly_cases"] = data.apply(lambda row: int(row["weekly_cases"]), axis=1)
 
-index = { x: dict(zip(map(int,data[x].unique()),range(len(data[x].unique())))) for x in ("date","IdLandkreis")}
-index["Altersgruppe"] = dict(zip(map(str,data["Altersgruppe"].unique()),range(len(data["Altersgruppe"].unique()))))
+index = {
+    x: dict(zip(map(int, data[x].unique()), range(len(data[x].unique()))))
+    for x in ("date", "IdLandkreis")
+}
+index["Altersgruppe"] = dict(
+    zip(
+        map(str, data["Altersgruppe"].unique()),
+        range(len(data["Altersgruppe"].unique())),
+    )
+)
 
-cases = np.full((len(index["date"]),len(index["IdLandkreis"]),len(index["Altersgruppe"])),-1)
-incidence = np.full((len(index["date"]),len(index["IdLandkreis"]),len(index["Altersgruppe"])),-1.0)
+cases = np.full(
+    (len(index["date"]), len(index["IdLandkreis"]), len(index["Altersgruppe"])), -1
+)
+incidence = np.full(
+    (len(index["date"]), len(index["IdLandkreis"]), len(index["Altersgruppe"])), -1.0
+)
 
-def get_index(date,IdLandkreis,Altersgruppe):
-    return (index["date"][date],index["IdLandkreis"][IdLandkreis],index["Altersgruppe"][Altersgruppe])
+
+def get_index(date, IdLandkreis, Altersgruppe):
+    return (
+        index["date"][date],
+        index["IdLandkreis"][IdLandkreis],
+        index["Altersgruppe"][Altersgruppe],
+    )
 
 
 for r in data.iterrows():
     row = r[1]
-    idx = get_index(row["date"],row["IdLandkreis"],row["Altersgruppe"])
-    cases[idx]=row["weekly_cases"]
-    incidence[idx]=row["inzidenz"]
+    idx = get_index(row["date"], row["IdLandkreis"], row["Altersgruppe"])
+    cases[idx] = row["weekly_cases"]
+    incidence[idx] = row["inzidenz"]
 
-with h5py.File("../data/timeseries_nd.hdf5", 'w') as f:
-    f.create_dataset(f"data/incidence", data=incidence, compression="gzip", compression_opts=9)
-    f.create_dataset(f"data/weekly_cases", data=cases, compression="gzip", compression_opts=9)
+with h5py.File("../data/timeseries_nd.hdf5", "w") as f:
+    f.create_dataset(
+        f"data/incidence", data=incidence, compression="gzip", compression_opts=9
+    )
+    f.create_dataset(
+        f"data/weekly_cases", data=cases, compression="gzip", compression_opts=9
+    )
 
-with open('../data/array_index.json', 'w') as f:
+with open("../data/array_index.json", "w") as f:
     f.write(json.dumps(index))

@@ -1,12 +1,11 @@
 import sys
 import pandas as pd
-import numpy as np
-import datetime
+import covid19_data_retrieval as cov19
 
 sys.path.append("../toolbox/master")
-import covid19_inference as cov19
 
-rki = cov19.data_retrieval.RKI(True)
+
+rki = cov19.RKI(True)
 
 # Population by landkreis
 sys.path.append("../SurvStat_RKI/")
@@ -62,7 +61,13 @@ def inzidenz_per_lk():
 
     level_values = data_l.index.get_level_values
     data_l = data_l.groupby(
-        [level_values(i) for i in [0,]] + [pd.Grouper(freq="W-Sun", level="date")]
+        [
+            level_values(i)
+            for i in [
+                0,
+            ]
+        ]
+        + [pd.Grouper(freq="W-Sun", level="date")]
     ).sum()
 
     # Calculate inzidenz per 100.000
