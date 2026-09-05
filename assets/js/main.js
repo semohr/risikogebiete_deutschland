@@ -395,12 +395,24 @@ function localAuthorityToolTip(pointProperties) {
 
 
 const commit_date = async () => {
+    // Cache the result to avoid exhausting GitHub's unauthenticated API rate
+    // limit (60 req/h per IP) on repeated page loads/refreshes.
+    var cache_key = "lastcommitdate_cache";
+    var cache_ttl = 60 * 60 * 1000; // 1 hour, matches GitHub's rate limit window
+    var cached = JSON.parse(localStorage.getItem(cache_key) || "null");
+    if (cached && (Date.now() - cached.timestamp) < cache_ttl) {
+        document.getElementById("lastcommitdate").innerHTML = cached.value;
+        return;
+    }
+
     const response1 = await fetch('https://api.github.com/repos/semohr/risikogebiete_deutschland/git/refs/heads/master');
     const refmain = await response1.json()
     const response2 = await fetch('https://api.github.com/repos/semohr/risikogebiete_deutschland/git/commits/'+refmain.object.sha);
     const lastcommit = await response2.json();
     const lastcommitdate = lastcommit.committer.date;
-    document.getElementById("lastcommitdate").innerHTML = lastcommitdate.replace("T"," ").replace("Z","");
+    var value = lastcommitdate.replace("T"," ").replace("Z","");
+    document.getElementById("lastcommitdate").innerHTML = value;
+    localStorage.setItem(cache_key, JSON.stringify({value: value, timestamp: Date.now()}));
 }
 
 
